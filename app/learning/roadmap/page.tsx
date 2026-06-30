@@ -1,8 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { ComingSoon } from "@/components/shared/coming-soon"
-import { Map } from "lucide-react"
+import { RoadmapContentNew } from "@/components/learning/roadmap-content-new"
 
 export default function LearningRoadmapPage() {
   return (
@@ -18,11 +17,7 @@ export default function LearningRoadmapPage() {
         />
 
         <div className="mt-8">
-          <ComingSoon
-            icon={Map}
-            title="Roadmap in progress"
-            description="Your structured path through power systems, instrumentation, safety, and reliability will appear here, broken down by training phase and target competency."
-          />
+          <RoadmapContentNew />
         </div>
       </main>
     </div>

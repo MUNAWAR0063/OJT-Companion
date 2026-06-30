@@ -1,9 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { EquipmentLibraryContent } from "@/components/equipment/equipment-library-content"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { EquipmentLibraryNew } from "@/components/equipment/equipment-library-new"
 
 export default function EquipmentLibraryPage() {
   return (
@@ -16,16 +14,10 @@ export default function EquipmentLibraryPage() {
         <Header
           title="Equipment Library"
           description="Catalog transformers, switchgear, motors, and protection devices you study on site."
-          actions={
-            <Button className="gap-2 w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30">
-              <Plus className="w-4 h-4" />
-              Add Equipment
-            </Button>
-          }
         />
 
         <div className="mt-8">
-          <EquipmentLibraryContent />
+          <EquipmentLibraryNew />
         </div>
       </main>
     </div>

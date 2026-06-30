@@ -1,9 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { AnalyticsContent } from "@/components/analytics/analytics-content"
-import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
+import { AnalyticsContentNew } from "@/components/analytics/analytics-content-new"
 
 export default function AnalyticsPage() {
   return (
@@ -16,19 +14,10 @@ export default function AnalyticsPage() {
         <Header
           title="Competencies"
           description="Track your competency progress and learning across the 18-week program."
-          actions={
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto h-9 text-sm transition-all duration-300 hover:shadow-md hover:scale-105 bg-transparent gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export Report
-            </Button>
-          }
         />
 
         <div className="mt-8">
-          <AnalyticsContent />
+          <AnalyticsContentNew />
         </div>
       </main>
     </div>

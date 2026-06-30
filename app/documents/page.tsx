@@ -1,8 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { ComingSoon } from "@/components/shared/coming-soon"
-import { FileText } from "lucide-react"
+import { DocumentsContentNew } from "@/components/documents/documents-content-new"
 
 export default function DocumentsPage() {
   return (
@@ -18,11 +17,7 @@ export default function DocumentsPage() {
         />
 
         <div className="mt-8">
-          <ComingSoon
-            icon={FileText}
-            title="Document hub coming soon"
-            description="Organize single-line diagrams, P&IDs, maintenance procedures, and engineering standards in one searchable place."
-          />
+          <DocumentsContentNew />
         </div>
       </main>
     </div>

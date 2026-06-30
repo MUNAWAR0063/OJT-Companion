@@ -1,8 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { ComingSoon } from "@/components/shared/coming-soon"
-import { Images } from "lucide-react"
+import { GalleryContentNew } from "@/components/gallery/gallery-content-new"
 
 export default function PhotoGalleryPage() {
   return (
@@ -18,11 +17,7 @@ export default function PhotoGalleryPage() {
         />
 
         <div className="mt-8">
-          <ComingSoon
-            icon={Images}
-            title="Gallery coming soon"
-            description="Capture and annotate photos of installations, wiring, and field conditions to support your daily journal entries."
-          />
+          <GalleryContentNew />
         </div>
       </main>
     </div>

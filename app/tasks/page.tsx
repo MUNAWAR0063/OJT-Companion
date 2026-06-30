@@ -1,9 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { TasksContent } from "@/components/tasks/tasks-content"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { TasksContentNew } from "@/components/tasks/tasks-content-new"
 
 export default function TasksPage() {
   return (
@@ -16,16 +14,10 @@ export default function TasksPage() {
         <Header
           title="Knowledge Base"
           description="Capture, organize, and master technical knowledge from field experience and training."
-          actions={
-            <Button className="w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 gap-2">
-              <Plus className="w-4 h-4" />
-              Add Lesson Learned
-            </Button>
-          }
         />
 
         <div className="mt-8">
-          <TasksContent />
+          <TasksContentNew />
         </div>
       </main>
     </div>

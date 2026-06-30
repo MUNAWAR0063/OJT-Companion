@@ -1,8 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { ComingSoon } from "@/components/shared/coming-soon"
-import { FileBarChart } from "lucide-react"
+import { ReportsContentNew } from "@/components/reports/reports-content-new"
 
 export default function ReportsPage() {
   return (
@@ -18,11 +17,7 @@ export default function ReportsPage() {
         />
 
         <div className="mt-8">
-          <ComingSoon
-            icon={FileBarChart}
-            title="Reporting coming soon"
-            description="Compile weekly learning summaries, competency progress, and field hours into shareable reports for mentor review."
-          />
+          <ReportsContentNew />
         </div>
       </main>
     </div>
