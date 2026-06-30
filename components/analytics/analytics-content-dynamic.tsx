@@ -40,7 +40,13 @@ export function AnalyticsContentDynamic() {
   ]
 
   const completionRate = stats.totalObjectives > 0 ? Math.round((stats.completedObjectives / stats.totalObjectives) * 100) : 0
-  const weekProgress = ((stats.completedObjectives + 1) % 10) * 10 // Demo calculation
+  
+  // Calculate current week progress (most recent week only)
+  const currentWeek = weeklyPlans.length > 0 ? weeklyPlans[weeklyPlans.length - 1] : null
+  const weekProgress =
+    currentWeek && currentWeek.objectives.length > 0
+      ? Math.round((currentWeek.objectives.filter((o) => o.status === "completed").length / currentWeek.objectives.length) * 100)
+      : 0
 
   return (
     <div className="space-y-6 animate-fade-in">
