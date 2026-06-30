@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { CalendarContent } from "@/components/calendar/calendar-content"
+import { WeeklyPlannerContent } from "@/components/planner/weekly-planner-content"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
@@ -14,18 +14,18 @@ export default function CalendarPage() {
         <PageBreadcrumb />
 
         <Header
-          title="Weekly Goals"
-          description="Plan your weekly learning objectives, site visits, and competency targets."
+          title="Weekly Planner"
+          description="Plan and track your weekly learning objectives, engineering tasks, equipment studies, and deliverables."
           actions={
             <Button className="w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 gap-2">
               <Plus className="w-4 h-4" />
-              New Weekly Goal
+              Add Task
             </Button>
           }
         />
 
         <div className="mt-8">
-          <CalendarContent />
+          <WeeklyPlannerContent />
         </div>
       </main>
     </div>
