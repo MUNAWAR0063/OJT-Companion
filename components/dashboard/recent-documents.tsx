@@ -1,13 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react"
-
-const documents = [
-  { name: "Generator O&M Manual.pdf", meta: "12.4 MB · opened 1h ago" },
-  { name: "Transformer Test Report T-2.pdf", meta: "3.1 MB · opened 3h ago" },
-  { name: "Protection Relay Settings Guide.pdf", meta: "8.7 MB · opened yesterday" },
-  { name: "Switchgear Single Line Diagram.pdf", meta: "1.2 MB · opened 2 days ago" },
-]
+import Link from "next/link"
 
 export function RecentDocuments() {
   return (
@@ -15,27 +9,18 @@ export function RecentDocuments() {
       className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "700ms" }}
     >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg md:text-xl font-semibold text-foreground">Recent Standards</h2>
-        <Button variant="ghost" size="sm" className="text-xs h-8 text-primary hover:text-primary">
-          View all
-        </Button>
-      </div>
-      <div className="space-y-2.5">
-        {documents.map((doc) => (
-          <button
-            key={doc.name}
-            className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors duration-200 hover:bg-secondary/60"
-          >
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-destructive" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
-              <p className="text-xs text-muted-foreground">{doc.meta}</p>
-            </div>
-          </button>
-        ))}
+      <div className="space-y-6 text-center py-8">
+        <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto" />
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">No documents uploaded</h3>
+          <p className="text-xs text-muted-foreground">Upload diagrams, datasheets, and standards for field reference</p>
+        </div>
+        <Link href="/documents">
+          <Button className="h-8 text-xs gap-2 mx-auto">
+            <FileText className="w-3 h-3" />
+            Upload Document
+          </Button>
+        </Link>
       </div>
     </Card>
   )

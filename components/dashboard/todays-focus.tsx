@@ -1,52 +1,28 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useState } from "react"
-
-const initialObjectives = [
-  { id: 1, text: "Review generator excitation system principles", done: true },
-  { id: 2, text: "Observe transformer tap-changer operation on site", done: true },
-  { id: 3, text: "Study motor protection relay settings (ANSI 49/51)", done: false },
-  { id: 4, text: "Document UPS battery bank inspection findings", done: false },
-  { id: 5, text: "Read switchgear interlocking sequence manual", done: false },
-]
+import { Button } from "@/components/ui/button"
+import { ListChecks } from "lucide-react"
+import Link from "next/link"
 
 export function TodaysFocus() {
-  const [objectives, setObjectives] = useState(initialObjectives)
-  const completed = objectives.filter((o) => o.done).length
-
-  const toggle = (id: number) =>
-    setObjectives((prev) => prev.map((o) => (o.id === id ? { ...o, done: !o.done } : o)))
-
   return (
     <Card
       className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "200ms" }}
     >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg md:text-xl font-semibold text-foreground">Today&apos;s Objectives</h2>
-        <span className="text-xs font-medium text-muted-foreground bg-muted px-3 py-1.5 rounded-full whitespace-nowrap">
-          {completed}/{objectives.length} completed
-        </span>
-      </div>
-      <div className="space-y-2">
-        {objectives.map((obj) => (
-          <label
-            key={obj.id}
-            htmlFor={`obj-${obj.id}`}
-            className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-secondary/60"
-          >
-            <Checkbox id={`obj-${obj.id}`} checked={obj.done} onCheckedChange={() => toggle(obj.id)} className="mt-1" />
-            <span
-              className={`text-sm leading-relaxed transition-colors ${
-                obj.done ? "text-muted-foreground line-through" : "text-foreground"
-              }`}
-            >
-              {obj.text}
-            </span>
-          </label>
-        ))}
+      <div className="space-y-6 text-center py-8">
+        <ListChecks className="w-12 h-12 text-muted-foreground/50 mx-auto" />
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">No objectives today</h3>
+          <p className="text-xs text-muted-foreground">Plan your daily objectives in the Weekly Planner to see them here</p>
+        </div>
+        <Link href="/calendar">
+          <Button className="h-8 text-xs gap-2 mx-auto">
+            <ListChecks className="w-3 h-3" />
+            Go to Weekly Planner
+          </Button>
+        </Link>
       </div>
     </Card>
   )

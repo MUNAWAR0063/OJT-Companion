@@ -55,7 +55,7 @@ const navEntries: NavEntry[] = [
     label: "Engineering",
     children: [
       { icon: CircuitBoard, label: "Equipment Library", href: "/equipment" },
-      { icon: BookOpen, label: "Knowledge Base", href: "/tasks", badge: "48" },
+      { icon: BookOpen, label: "Knowledge Base", href: "/tasks" },
       { icon: FileText, label: "Standards & Docs", href: "/documents" },
       { icon: Images, label: "Project Gallery", href: "/gallery" },
     ],

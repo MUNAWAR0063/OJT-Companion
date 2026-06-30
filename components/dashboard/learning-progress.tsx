@@ -1,64 +1,7 @@
-"use client"
-
 import { Card } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-
-const rings = [
-  { label: "Competency Development", target: 41, sublabel: "All trips" },
-  { label: "Current Assignment", target: 58, sublabel: "Trip 2 of 4" },
-  { label: "This Week", target: 72, sublabel: "Week 6 of 18" },
-]
-
-function ProgressRing({ target, label, sublabel, delay }: { target: number; label: string; sublabel: string; delay: number }) {
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    const start = setTimeout(() => {
-      const timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= target) {
-            clearInterval(timer)
-            return target
-          }
-          return prev + 1
-        })
-      }, 20)
-      return () => clearInterval(timer)
-    }, delay)
-    return () => clearTimeout(start)
-  }, [target, delay])
-
-  const radius = 52
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (progress / 100) * circumference
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-32 h-32">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
-          <circle cx="64" cy="64" r={radius} stroke="currentColor" strokeWidth="10" fill="none" className="text-muted/30" />
-          <circle
-            cx="64"
-            cy="64"
-            r={radius}
-            stroke="currentColor"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            className="text-primary transition-all duration-300 ease-out"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-foreground">{progress}%</span>
-        </div>
-      </div>
-      <p className="mt-2 text-sm font-semibold text-foreground">{label}</p>
-      <p className="text-xs text-muted-foreground">{sublabel}</p>
-    </div>
-  )
-}
+import { Button } from "@/components/ui/button"
+import { TrendingUp } from "lucide-react"
+import Link from "next/link"
 
 export function LearningProgress() {
   return (
@@ -66,11 +9,20 @@ export function LearningProgress() {
       className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "100ms" }}
     >
-      <h2 className="text-lg md:text-xl font-semibold text-foreground mb-8">Competency Progress</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
-        {rings.map((ring, i) => (
-          <ProgressRing key={ring.label} target={ring.target} label={ring.label} sublabel={ring.sublabel} delay={i * 200} />
-        ))}
+      <div className="space-y-6 text-center py-12">
+        <TrendingUp className="w-14 h-14 text-muted-foreground/40 mx-auto" />
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">No competency data yet</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Start creating weekly plans, logging equipment studies, and capturing knowledge to track your competency progress
+          </p>
+        </div>
+        <Link href="/calendar">
+          <Button className="h-8 text-xs gap-2 mx-auto">
+            <TrendingUp className="w-3 h-3" />
+            Get Started
+          </Button>
+        </Link>
       </div>
     </Card>
   )
