@@ -16,7 +16,7 @@ export function CurrentLearning() {
       style={{ animationDelay: "300ms" }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-foreground">Current Learning</h2>
+        <h2 className="text-xl font-semibold text-foreground">Focus Equipment</h2>
         <span className="text-[11px] font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
           In Progress
         </span>

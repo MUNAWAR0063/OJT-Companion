@@ -2,9 +2,9 @@ import { Card } from "@/components/ui/card"
 import { MapPin, CalendarDays, Plane } from "lucide-react"
 
 const details = [
-  { icon: Plane, label: "Current OJT Trip", value: "Trip 2 of 4" },
-  { icon: CalendarDays, label: "Current Week", value: "Week 6 of 18" },
-  { icon: MapPin, label: "Current Site", value: "Ras Tanura Power Plant" },
+  { icon: Plane, label: "Active OJT Assignment", value: "Trip 2 of 4" },
+  { icon: CalendarDays, label: "Training Progress", value: "Week 6 of 18" },
+  { icon: MapPin, label: "Field Location", value: "Ras Tanura Power Plant" },
 ]
 
 export function WelcomeCard() {

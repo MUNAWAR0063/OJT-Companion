@@ -4,9 +4,9 @@ import { Card } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 
 const rings = [
-  { label: "Overall Progress", target: 41, sublabel: "All trips" },
-  { label: "Current Trip", target: 58, sublabel: "Trip 2 of 4" },
-  { label: "Current Week", target: 72, sublabel: "Week 6 of 18" },
+  { label: "Competency Development", target: 41, sublabel: "All trips" },
+  { label: "Current Assignment", target: 58, sublabel: "Trip 2 of 4" },
+  { label: "This Week", target: 72, sublabel: "Week 6 of 18" },
 ]
 
 function ProgressRing({ target, label, sublabel, delay }: { target: number; label: string; sublabel: string; delay: number }) {
@@ -66,7 +66,7 @@ export function LearningProgress() {
       className="p-6 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "100ms" }}
     >
-      <h2 className="text-xl font-semibold text-foreground mb-6">Learning Progress</h2>
+      <h2 className="text-xl font-semibold text-foreground mb-6">Competency Progress</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {rings.map((ring, i) => (
           <ProgressRing key={ring.label} target={ring.target} label={ring.label} sublabel={ring.sublabel} delay={i * 200} />

@@ -20,7 +20,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
         <Header
           title="Dashboard"
-          description="Your engineering learning overview for this OJT trip."
+          description="Your competency and learning progress overview for this OJT assignment."
         />
 
         <div className="mt-6 md:mt-8 space-y-5 md:space-y-6">

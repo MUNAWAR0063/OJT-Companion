@@ -22,7 +22,7 @@ export function WeeklyPlanner() {
       style={{ animationDelay: "400ms" }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Weekly Planner</h2>
+        <h2 className="text-xl font-semibold text-foreground">Weekly Learning Plan</h2>
         <span className="text-xs text-muted-foreground">Week 6</span>
       </div>
       <div className="space-y-2">

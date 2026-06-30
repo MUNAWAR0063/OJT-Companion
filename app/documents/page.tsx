@@ -10,8 +10,8 @@ export default function DocumentsPage() {
 
       <main className="flex-1 p-4 lg:p-6 lg:ml-64">
         <Header
-          title="Documents"
-          description="Store SLDs, datasheets, procedures, and standards for quick reference."
+          title="Standards & Documentation"
+          description="Access single-line diagrams, datasheets, procedures, and engineering standards for field reference."
         />
 
         <div className="mt-6">

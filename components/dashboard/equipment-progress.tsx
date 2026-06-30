@@ -3,11 +3,11 @@ import { Progress } from "@/components/ui/progress"
 import { Zap, Box, Cpu, BatteryCharging, PanelsTopLeft, ShieldCheck } from "lucide-react"
 
 const equipment = [
-  { name: "Generator", icon: Zap, progress: 65, status: "Studying" },
-  { name: "Transformer", icon: Box, progress: 90, status: "Mastered" },
-  { name: "Motor", icon: Cpu, progress: 45, status: "Studying" },
-  { name: "UPS", icon: BatteryCharging, progress: 30, status: "Started" },
-  { name: "Switchgear", icon: PanelsTopLeft, progress: 15, status: "Started" },
+  { name: "Generator", icon: Zap, progress: 65, status: "In Progress" },
+  { name: "Transformer", icon: Box, progress: 90, status: "Proficient" },
+  { name: "Motor", icon: Cpu, progress: 45, status: "In Progress" },
+  { name: "UPS", icon: BatteryCharging, progress: 30, status: "Foundation" },
+  { name: "Switchgear", icon: PanelsTopLeft, progress: 15, status: "Foundation" },
   { name: "Protection Relay", icon: ShieldCheck, progress: 0, status: "Not started" },
 ]
 
@@ -17,7 +17,7 @@ export function EquipmentProgress() {
       className="p-6 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "500ms" }}
     >
-      <h2 className="text-xl font-semibold text-foreground mb-6">Equipment Progress</h2>
+      <h2 className="text-xl font-semibold text-foreground mb-6">Equipment Competency</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
         {equipment.map((eq) => (
           <div key={eq.name} className="group">

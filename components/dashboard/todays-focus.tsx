@@ -25,9 +25,9 @@ export function TodaysFocus() {
       style={{ animationDelay: "200ms" }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Today&apos;s Focus</h2>
+        <h2 className="text-xl font-semibold text-foreground">Today&apos;s Objectives</h2>
         <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-          {completed}/{objectives.length} done
+          {completed}/{objectives.length} completed
         </span>
       </div>
       <div className="space-y-1">

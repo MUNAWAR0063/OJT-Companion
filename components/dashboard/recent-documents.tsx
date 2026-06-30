@@ -16,7 +16,7 @@ export function RecentDocuments() {
       style={{ animationDelay: "700ms" }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Recent Documents</h2>
+        <h2 className="text-xl font-semibold text-foreground">Recent Standards</h2>
         <Button variant="ghost" size="sm" className="text-xs h-8 text-primary hover:text-primary">
           View all
         </Button>

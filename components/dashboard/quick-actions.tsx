@@ -3,10 +3,10 @@ import { NotebookPen, Cpu, BookOpen, Upload } from "lucide-react"
 import Link from "next/link"
 
 const actions = [
-  { label: "New Journal", icon: NotebookPen, href: "/team" },
-  { label: "Open Equipment", icon: Cpu, href: "/equipment" },
-  { label: "Add Knowledge", icon: BookOpen, href: "/tasks" },
-  { label: "Upload Document", icon: Upload, href: "/documents" },
+  { label: "New Field Note", icon: NotebookPen, href: "/team" },
+  { label: "Equipment Log", icon: Cpu, href: "/equipment" },
+  { label: "Add Lesson Learned", icon: BookOpen, href: "/tasks" },
+  { label: "Upload Standard", icon: Upload, href: "/documents" },
 ]
 
 export function QuickActions() {

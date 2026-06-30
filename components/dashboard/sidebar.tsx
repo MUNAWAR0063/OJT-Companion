@@ -46,8 +46,8 @@ const navEntries: NavEntry[] = [
     label: "Learning",
     children: [
       { icon: Map, label: "Learning Roadmap", href: "/learning/roadmap" },
-      { icon: CalendarRange, label: "Weekly Planner", href: "/calendar" },
-      { icon: NotebookPen, label: "Daily Journal", href: "/team" },
+      { icon: CalendarRange, label: "Weekly Goals", href: "/calendar" },
+      { icon: NotebookPen, label: "Field Notes", href: "/team" },
     ],
   },
   {
@@ -56,15 +56,15 @@ const navEntries: NavEntry[] = [
     children: [
       { icon: CircuitBoard, label: "Equipment Library", href: "/equipment" },
       { icon: BookOpen, label: "Knowledge Base", href: "/tasks", badge: "48" },
-      { icon: FileText, label: "Documents", href: "/documents" },
-      { icon: Images, label: "Photo Gallery", href: "/gallery" },
+      { icon: FileText, label: "Standards & Docs", href: "/documents" },
+      { icon: Images, label: "Project Gallery", href: "/gallery" },
     ],
   },
   {
     icon: BarChart3,
-    label: "Analytics",
+    label: "Progress",
     children: [
-      { icon: TrendingUp, label: "Learning Progress", href: "/analytics" },
+      { icon: TrendingUp, label: "Competency", href: "/analytics" },
       { icon: FileBarChart, label: "Reports", href: "/reports" },
     ],
   },

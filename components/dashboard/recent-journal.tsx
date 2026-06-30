@@ -30,7 +30,7 @@ export function RecentJournal() {
       style={{ animationDelay: "600ms" }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Recent Journal</h2>
+        <h2 className="text-xl font-semibold text-foreground">Recent Field Notes</h2>
         <Button variant="ghost" size="sm" className="text-xs h-8 text-primary hover:text-primary">
           View all
         </Button>
