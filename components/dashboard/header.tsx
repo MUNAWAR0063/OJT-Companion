@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export function Header({ title, description, actions }: HeaderProps) {
   return (
-    <header className="space-y-3 md:space-y-4 animate-slide-in-up">
+    <header className="space-y-5 md:space-y-6 animate-slide-in-up">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1">
           <MobileNav />
@@ -62,9 +62,9 @@ export function Header({ title, description, actions }: HeaderProps) {
         </div>
       </div>
 
-      <div>
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground mb-1">{title}</h1>
-        <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
+      <div className="space-y-2">
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
+        <p className="text-sm md:text-[15px] leading-relaxed text-muted-foreground reading-width">{description}</p>
       </div>
 
       {actions && <div className="flex flex-col sm:flex-row gap-2">{actions}</div>}

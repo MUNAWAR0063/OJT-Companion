@@ -82,8 +82,8 @@ export function HelpContent() {
               className="p-4 rounded-lg border border-border hover:bg-secondary transition-all duration-300 animate-slide-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <h4 className="font-medium mb-2">{faq.question}</h4>
-              <p className="text-sm text-muted-foreground">{faq.answer}</p>
+              <h4 className="font-semibold mb-1.5">{faq.question}</h4>
+              <p className="text-[15px] leading-relaxed text-muted-foreground reading-width">{faq.answer}</p>
             </div>
           ))}
         </div>

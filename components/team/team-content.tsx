@@ -78,7 +78,7 @@ export function TeamContent() {
               {entry.location}
             </p>
 
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4">{entry.summary}</p>
+            <p className="text-[15px] text-muted-foreground leading-relaxed reading-width mb-4">{entry.summary}</p>
 
             <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
               {entry.tags.map((tag) => (

@@ -8,7 +8,7 @@ export default function TeamPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
 
-      <main className="flex-1 p-4 lg:p-6 lg:ml-64">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
         <Header
           title="Field Journal"
           description="Document daily field observations, lessons learned, and site notes."
@@ -19,7 +19,7 @@ export default function TeamPage() {
           }
         />
 
-        <div className="mt-6">
+        <div className="mt-8">
           <TeamContent />
         </div>
       </main>

@@ -93,7 +93,8 @@
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -146,6 +147,46 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    line-height: 1.6;
+    letter-spacing: -0.006em;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold text-foreground;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  /* Large, consistent section title used across dashboard cards and views */
+  .section-title {
+    @apply text-lg md:text-xl font-semibold tracking-tight text-foreground;
+  }
+
+  /* Comfortable measure for long-form engineering notes (~70 characters) */
+  .reading-width {
+    max-width: 68ch;
+  }
+
+  /* Optimized body text for reading long engineering notes */
+  .prose-notes {
+    max-width: 68ch;
+    line-height: 1.75;
+    letter-spacing: 0.002em;
+  }
+  .prose-notes p + p {
+    margin-top: 1rem;
   }
 }
 

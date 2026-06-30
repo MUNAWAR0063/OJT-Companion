@@ -17,20 +17,20 @@ export default function DashboardPage() {
         <Sidebar />
       </div>
 
-      <main className="flex-1 p-3 md:p-4 lg:p-5 lg:ml-64">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
         <Header
           title="Dashboard"
           description="Your engineering learning overview for this OJT trip."
         />
 
-        <div className="mt-4 md:mt-5 space-y-3 md:space-y-4">
+        <div className="mt-6 md:mt-8 space-y-5 md:space-y-6">
           <WelcomeCard />
 
           <LearningProgress />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4">
-            <div className="lg:col-span-2 space-y-3 md:space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
+            <div className="lg:col-span-2 space-y-5 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                 <TodaysFocus />
                 <CurrentLearning />
               </div>
@@ -38,7 +38,7 @@ export default function DashboardPage() {
               <RecentJournal />
             </div>
 
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-5 md:space-y-6">
               <QuickActions />
               <WeeklyPlanner />
               <RecentDocuments />
