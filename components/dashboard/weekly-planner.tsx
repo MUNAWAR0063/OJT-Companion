@@ -11,7 +11,7 @@ const plan = [
 
 const statusConfig = {
   done: { icon: CheckCircle2, className: "text-primary" },
-  active: { icon: Clock, className: "text-amber-500" },
+  active: { icon: Clock, className: "text-warning" },
   todo: { icon: Circle, className: "text-muted-foreground/50" },
 }
 

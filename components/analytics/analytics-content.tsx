@@ -58,11 +58,11 @@ export function AnalyticsContent() {
             </p>
             <div className="flex items-center gap-1.5 text-xs opacity-80">
               {stat.trend === "up" ? (
-                <TrendingUp className="w-3 h-3 text-green-600" />
+                <TrendingUp className="w-3 h-3 text-success" />
               ) : (
-                <TrendingDown className="w-3 h-3 text-red-600" />
+                <TrendingDown className="w-3 h-3 text-danger" />
               )}
-              <span className={stat.trend === "up" ? "text-green-600" : "text-red-600"}>{stat.change}</span>
+              <span className={stat.trend === "up" ? "text-success" : "text-danger"}>{stat.change}</span>
             </div>
           </Card>
         ))}
@@ -98,9 +98,9 @@ export function AnalyticsContent() {
           <div className="space-y-4">
             {[
               { name: "Power Systems", count: 5, color: "bg-primary" },
-              { name: "Instrumentation & Control", count: 3, color: "bg-sky-500" },
-              { name: "Electrical Safety", count: 3, color: "bg-amber-500" },
-              { name: "Maintenance & Reliability", count: 1, color: "bg-indigo-500" },
+              { name: "Instrumentation & Control", count: 3, color: "bg-info" },
+              { name: "Electrical Safety", count: 3, color: "bg-warning" },
+              { name: "Maintenance & Reliability", count: 1, color: "bg-success" },
             ].map((item, index) => (
               <div
                 key={item.name}

@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, HardHat } from "lucide-react"
 import { useState } from "react"
 
 const events = [
-  { id: 1, title: "Safety Toolbox Talk", time: "08:00 AM", duration: "30 min", type: "field", color: "bg-amber-500" },
+  { id: 1, title: "Safety Toolbox Talk", time: "08:00 AM", duration: "30 min", type: "field", color: "bg-warning" },
   { id: 2, title: "Substation Walkthrough", time: "10:00 AM", duration: "1.5 hours", type: "field", color: "bg-primary" },
   {
     id: 3,
@@ -15,9 +15,9 @@ const events = [
     time: "01:00 PM",
     duration: "1 hour",
     type: "review",
-    color: "bg-sky-500",
+    color: "bg-info",
   },
-  { id: 4, title: "Mentor Progress Review", time: "04:00 PM", duration: "45 min", type: "review", color: "bg-indigo-500" },
+  { id: 4, title: "Mentor Progress Review", time: "04:00 PM", duration: "45 min", type: "review", color: "bg-success" },
 ]
 
 const daysInMonth = Array.from({ length: 30 }, (_, i) => i + 1)

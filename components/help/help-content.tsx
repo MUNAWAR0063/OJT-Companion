@@ -9,21 +9,21 @@ const helpCategories = [
     icon: BookOpen,
     title: "Getting Started",
     description: "Learn how to organize knowledge, schedule, and competencies",
-    color: "bg-primary",
+    color: "text-primary",
   },
   {
     icon: NotebookPen,
     title: "Journaling Tips",
     description: "How to write effective daily field observations",
-    color: "bg-sky-500",
+    color: "text-info",
   },
   {
     icon: ShieldCheck,
     title: "Safety Resources",
     description: "Quick links to permit, isolation, and safety references",
-    color: "bg-amber-500",
+    color: "text-warning",
   },
-  { icon: Mail, title: "Contact Mentor", description: "Reach out to your field supervisor", color: "bg-indigo-500" },
+  { icon: Mail, title: "Contact Mentor", description: "Reach out to your field supervisor", color: "text-success" },
 ]
 
 const faqs = [
@@ -61,8 +61,8 @@ export function HelpContent() {
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-lg ${category.color}`}>
-                <category.icon className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-lg bg-secondary">
+                <category.icon className={`w-6 h-6 ${category.color}`} />
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-1">{category.title}</h3>
