@@ -1,11 +1,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Search, Filter, FolderTree, Tag, CalendarDays } from "lucide-react"
+import { KnowledgeCard } from "@/components/cards/knowledge-card"
+import { Search, Filter, CalendarDays } from "lucide-react"
 import { useState } from "react"
 
 const entries = [
@@ -13,7 +12,8 @@ const entries = [
     id: 1,
     title: "Switchgear protection & relay coordination",
     category: "Power Systems",
-    importance: "Core",
+    importance: "core",
+    description: "Understanding protection systems and relay coordination in switchgear design and operation.",
     updated: "Nov 24, 2024",
     mastered: false,
     tags: ["Protection", "11kV"],
@@ -22,7 +22,8 @@ const entries = [
     id: 2,
     title: "Hazardous area classification (Zones 0/1/2)",
     category: "Electrical Safety",
-    importance: "Core",
+    importance: "core",
+    description: "ATEX directive compliance and hazardous area classifications for equipment selection.",
     updated: "Nov 25, 2024",
     mastered: false,
     tags: ["ATEX", "Safety"],
@@ -31,7 +32,8 @@ const entries = [
     id: 3,
     title: "4-20mA loop signal fundamentals",
     category: "Instrumentation & Control",
-    importance: "Medium",
+    importance: "medium",
+    description: "Industrial standard signal transmission and instrumentation loop basics.",
     updated: "Nov 23, 2024",
     mastered: true,
     tags: ["Signals", "Field"],
@@ -40,7 +42,8 @@ const entries = [
     id: 4,
     title: "Reading single line diagrams (SLD)",
     category: "Documentation",
-    importance: "Medium",
+    importance: "medium",
+    description: "Interpreting electrical single line diagrams and technical drawings.",
     updated: "Nov 26, 2024",
     mastered: false,
     tags: ["Drawings"],
@@ -49,7 +52,8 @@ const entries = [
     id: 5,
     title: "Motor starting methods (DOL, Star-Delta, VFD)",
     category: "Power Systems",
-    importance: "Core",
+    importance: "core",
+    description: "Comparison of motor starting techniques and variable frequency drive applications.",
     updated: "Nov 24, 2024",
     mastered: false,
     tags: ["Motors", "Drives"],
@@ -58,7 +62,8 @@ const entries = [
     id: 6,
     title: "Earthing & bonding in process plants",
     category: "Electrical Safety",
-    importance: "Medium",
+    importance: "medium",
+    description: "Proper earthing and bonding practices for industrial plant safety systems.",
     updated: "Nov 27, 2024",
     mastered: false,
     tags: ["Earthing"],
@@ -110,48 +115,17 @@ export function TasksContent() {
         </Button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEntries.map((entry, index) => (
-          <Card
+          <KnowledgeCard
             key={entry.id}
-            className="p-4 hover:shadow-lg transition-all duration-300 cursor-pointer animate-slide-in"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <div className="flex items-start gap-4">
-              <Checkbox checked={entry.mastered} className="mt-1" />
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className={`font-semibold text-foreground ${entry.mastered ? "line-through opacity-60" : ""}`}>
-                    {entry.title}
-                  </h3>
-                  <Badge
-                    variant={entry.importance === "Core" ? "default" : "secondary"}
-                    className="shrink-0"
-                  >
-                    {entry.importance}
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <FolderTree className="w-4 h-4" />
-                    {entry.category}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CalendarDays className="w-4 h-4" />
-                    Updated {entry.updated}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {entry.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
+            topic={entry.title}
+            category={entry.category}
+            description={entry.description}
+            importance={entry.importance as "core" | "medium" | "optional"}
+            mastered={entry.mastered}
+            delay={index * 50}
+          />
         ))}
       </div>
     </div>
