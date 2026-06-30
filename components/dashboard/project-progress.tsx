@@ -24,14 +24,14 @@ export function ProjectProgress() {
       className="p-4 transition-all duration-500 hover:shadow-xl animate-slide-in-up overflow-hidden"
       style={{ animationDelay: "800ms" }}
     >
-      <h2 className="text-lg font-semibold text-foreground mb-4">Project Progress</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">Competency Progress</h2>
       <div className="flex flex-col items-center">
         <div className="relative w-40 h-40 mb-4">
           <div
             className="absolute inset-0 rounded-full opacity-20"
             style={{
               background:
-                "repeating-linear-gradient(45deg, transparent, transparent 6px, oklch(0.42 0.15 155) 6px, oklch(0.42 0.15 155) 12px)",
+                "repeating-linear-gradient(45deg, transparent, transparent 6px, oklch(0.63 0.16 250) 6px, oklch(0.63 0.16 250) 12px)",
             }}
           />
           <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 160 160">
@@ -59,7 +59,7 @@ export function ProjectProgress() {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-4xl font-bold text-foreground">{progress}%</span>
-            <span className="text-xs text-muted-foreground mt-1">Project Ended</span>
+            <span className="text-xs text-muted-foreground mt-1">Overall</span>
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-3 text-xs">

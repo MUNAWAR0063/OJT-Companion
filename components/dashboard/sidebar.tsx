@@ -1,17 +1,17 @@
 "use client"
 
-import { LayoutDashboard, CheckSquare, Calendar, BarChart3, Users, Settings, HelpCircle, LogOut } from "lucide-react"
+import { LayoutDashboard, BookOpen, CalendarDays, Activity, NotebookPen, Settings, HelpCircle, LogOut, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-  { icon: CheckSquare, label: "Tasks", badge: "124", href: "/tasks" },
-  { icon: Calendar, label: "Calendar", href: "/calendar" },
-  { icon: BarChart3, label: "Analytics", href: "/analytics" },
-  { icon: Users, label: "Team", href: "/team" },
+  { icon: LayoutDashboard, label: "Overview", href: "/" },
+  { icon: BookOpen, label: "Knowledge", badge: "48", href: "/tasks" },
+  { icon: CalendarDays, label: "Schedule", href: "/calendar" },
+  { icon: Activity, label: "Competencies", href: "/analytics" },
+  { icon: NotebookPen, label: "Field Journal", href: "/team" },
 ]
 
 const generalItems = [
@@ -26,20 +26,15 @@ export function Sidebar() {
 
   return (
     <aside className="fixed top-0 left-0 w-64 bg-card border-r border-border p-4 h-screen overflow-y-auto lg:block">
-      <div className="flex items-center gap-2 mb-6 group cursor-pointer">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-110 duration-300 relative">
-            <div
-              className="w-1.5 h-1.5 rounded-full bg-primary-foreground absolute"
-              style={{ top: "30%", left: "30%" }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-full bg-primary-foreground absolute"
-              style={{ top: "30%", right: "30%" }}
-            />
-            <div className="w-3 h-1.5 border-b-2 border-primary-foreground rounded-full absolute bottom-2.5" />
+      <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+            <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="text-lg font-semibold text-foreground">Tasko</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-sm font-semibold text-foreground">OJT Companion</span>
+            <span className="text-[10px] text-muted-foreground">Electrical Engineering</span>
+          </div>
         </Link>
       </div>
 

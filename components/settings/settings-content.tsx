@@ -36,6 +36,22 @@ export function SettingsContent() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" defaultValue="jessin@gmail.com" />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="discipline">Discipline</Label>
+              <Input id="discipline" defaultValue="Electrical Engineering" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company">Host Company</Label>
+              <Input id="company" defaultValue="Upstream Oil &amp; Gas — Operations" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supervisor">Field Supervisor</Label>
+              <Input id="supervisor" defaultValue="Eng. A. Rahman" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration">Program Duration</Label>
+              <Input id="duration" defaultValue="18 Weeks (Week 6)" />
+            </div>
           </div>
 
           <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
@@ -46,10 +62,10 @@ export function SettingsContent() {
         <h3 className="font-semibold text-lg mb-6">Notifications</h3>
         <div className="space-y-4">
           {[
-            { label: "Email notifications", description: "Receive email about your account activity" },
-            { label: "Push notifications", description: "Receive push notifications in your browser" },
-            { label: "Task reminders", description: "Get reminded about upcoming task deadlines" },
-            { label: "Team updates", description: "Notifications about team member activities" },
+            { label: "Session reminders", description: "Get reminded about upcoming training sessions and site visits" },
+            { label: "Weekly report reminder", description: "A nudge to submit your weekly learning summary" },
+            { label: "Competency milestones", description: "Notify me when a competency is marked as met" },
+            { label: "Document updates", description: "Alerts when reference documents are revised" },
           ].map((item, index) => (
             <div
               key={item.label}

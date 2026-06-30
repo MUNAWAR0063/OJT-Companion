@@ -2,41 +2,46 @@
 
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search, BookOpen, Video, MessageCircle, Mail } from "lucide-react"
+import { Search, BookOpen, NotebookPen, ShieldCheck, Mail } from "lucide-react"
 
 const helpCategories = [
   {
     icon: BookOpen,
-    title: "Documentation",
-    description: "Browse our comprehensive guides and tutorials",
-    color: "bg-blue-500",
+    title: "Getting Started",
+    description: "Learn how to organize knowledge, schedule, and competencies",
+    color: "bg-primary",
   },
-  { icon: Video, title: "Video Tutorials", description: "Watch step-by-step video guides", color: "bg-purple-500" },
   {
-    icon: MessageCircle,
-    title: "Community Forum",
-    description: "Connect with other users and get answers",
-    color: "bg-green-600",
+    icon: NotebookPen,
+    title: "Journaling Tips",
+    description: "How to write effective daily field observations",
+    color: "bg-sky-500",
   },
-  { icon: Mail, title: "Contact Support", description: "Get help from our support team", color: "bg-amber-500" },
+  {
+    icon: ShieldCheck,
+    title: "Safety Resources",
+    description: "Quick links to permit, isolation, and safety references",
+    color: "bg-amber-500",
+  },
+  { icon: Mail, title: "Contact Mentor", description: "Reach out to your field supervisor", color: "bg-indigo-500" },
 ]
 
 const faqs = [
   {
-    question: "How do I create a new project?",
-    answer: "Click the 'Add Project' button on the dashboard to create a new project.",
+    question: "How do I add a knowledge entry?",
+    answer: "Open the Knowledge Base and click 'New Entry' to capture a technical topic, tag it, and mark it as mastered when ready.",
   },
   {
-    question: "Can I invite team members?",
-    answer: "Yes, go to the Team page and click 'Add Member' to invite new team members.",
+    question: "Where do I record field observations?",
+    answer: "Use the Field Journal to log daily site observations, lessons learned, and notes tied to each training week.",
   },
   {
-    question: "How do I track time on tasks?",
-    answer: "Use the Time Tracker widget on the dashboard to start tracking time for your tasks.",
+    question: "How is my training progress tracked?",
+    answer: "The Competencies page summarizes topics studied, field hours, and competency areas across the 18-week program.",
   },
   {
-    question: "Can I export my data?",
-    answer: "Yes, you can export your data from the Settings page under Data Management.",
+    question: "Can I plan my training sessions?",
+    answer: "Yes — use the Schedule to plan site visits, toolbox talks, and mentor reviews throughout your OJT.",
   },
 ]
 

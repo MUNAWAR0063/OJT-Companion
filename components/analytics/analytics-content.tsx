@@ -1,23 +1,23 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Users, CheckCircle, Clock, Target, ArrowUpRight } from "lucide-react"
+import { TrendingUp, TrendingDown, BookOpen, CheckCircle, Clock, Target, ArrowUpRight } from "lucide-react"
 import { useState } from "react"
 
 const stats = [
-  { title: "Total Tasks Completed", value: "247", change: "+12%", trend: "up", icon: CheckCircle },
-  { title: "Active Projects", value: "12", change: "+3", trend: "up", icon: Target },
-  { title: "Team Members", value: "24", change: "-2", trend: "down", icon: Users },
-  { title: "Avg. Completion Time", value: "2.3", subtitle: "days", change: "-0.5", trend: "up", icon: Clock },
+  { title: "Competencies Met", value: "12/30", change: "+3", trend: "up", icon: CheckCircle },
+  { title: "Topics Studied", value: "48", change: "+12", trend: "up", icon: BookOpen },
+  { title: "Field Hours", value: "96", subtitle: "hrs", change: "+18", trend: "up", icon: Clock },
+  { title: "Program Progress", value: "33", subtitle: "%", change: "+6%", trend: "up", icon: Target },
 ]
 
 const monthlyData = [
-  { month: "Jan", tasks: 45, projects: 8 },
-  { month: "Feb", tasks: 52, projects: 9 },
-  { month: "Mar", tasks: 48, projects: 10 },
-  { month: "Apr", tasks: 61, projects: 11 },
-  { month: "May", tasks: 55, projects: 12 },
-  { month: "Jun", tasks: 67, projects: 12 },
+  { month: "Week 1", tasks: 32, projects: 8 },
+  { month: "Week 2", tasks: 45, projects: 9 },
+  { month: "Week 3", tasks: 52, projects: 10 },
+  { month: "Week 4", tasks: 61, projects: 11 },
+  { month: "Week 5", tasks: 58, projects: 12 },
+  { month: "Week 6", tasks: 72, projects: 12 },
 ]
 
 export function AnalyticsContent() {
@@ -70,7 +70,7 @@ export function AnalyticsContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-6">Monthly Task Completion</h3>
+          <h3 className="font-semibold text-lg mb-6">Weekly Learning Volume</h3>
           <div className="space-y-4">
             {monthlyData.map((data, index) => (
               <div
@@ -80,7 +80,7 @@ export function AnalyticsContent() {
               >
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{data.month}</span>
-                  <span className="text-muted-foreground">{data.tasks} tasks</span>
+                  <span className="text-muted-foreground">{data.tasks} notes</span>
                 </div>
                 <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
                   <div
@@ -94,13 +94,13 @@ export function AnalyticsContent() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-6">Project Distribution</h3>
+          <h3 className="font-semibold text-lg mb-6">Competency Areas</h3>
           <div className="space-y-4">
             {[
-              { name: "In Progress", count: 8, color: "bg-blue-500" },
-              { name: "Completed", count: 15, color: "bg-green-600" },
-              { name: "Pending", count: 5, color: "bg-amber-500" },
-              { name: "On Hold", count: 2, color: "bg-gray-500" },
+              { name: "Power Systems", count: 5, color: "bg-primary" },
+              { name: "Instrumentation & Control", count: 3, color: "bg-sky-500" },
+              { name: "Electrical Safety", count: 3, color: "bg-amber-500" },
+              { name: "Maintenance & Reliability", count: 1, color: "bg-indigo-500" },
             ].map((item, index) => (
               <div
                 key={item.name}

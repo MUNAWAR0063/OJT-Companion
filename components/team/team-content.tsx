@@ -2,96 +2,90 @@
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Mail, Phone, MoreHorizontal } from "lucide-react"
+import { MapPin, CalendarDays, MoreHorizontal } from "lucide-react"
 
-const teamMembers = [
+const journalEntries = [
   {
-    name: "Alexandra Deff",
-    role: "Product Designer",
-    email: "alexandra@tasko.com",
-    status: "active",
-    tasks: 12,
-    avatar: "/avatars/avatar-1.jpg",
-    initials: "AD",
+    title: "Transformer tap-changer inspection",
+    location: "Substation A — 33/11kV",
+    date: "Nov 27, 2024",
+    week: "Week 6",
+    summary:
+      "Observed on-load tap changer operation and recorded oil temperature readings. Noted the importance of Buchholz relay alarms during switching.",
+    tags: ["Power Systems", "Field Observation"],
   },
   {
-    name: "Edwin Adenike",
-    role: "Frontend Developer",
-    email: "edwin@tasko.com",
-    status: "active",
-    tasks: 8,
-    avatar: "/avatars/avatar-2.jpg",
-    initials: "EA",
+    title: "Control room DCS handover",
+    location: "Central Control Room",
+    date: "Nov 26, 2024",
+    week: "Week 6",
+    summary:
+      "Shadowed the shift handover. Learned how alarms are prioritized and how trends are used to spot abnormal process conditions early.",
+    tags: ["Instrumentation", "Operations"],
   },
   {
-    name: "Isaac Oluwatemilorun",
-    role: "Backend Developer",
-    email: "isaac@tasko.com",
-    status: "away",
-    tasks: 15,
-    avatar: "/avatars/avatar-3.jpg",
-    initials: "IO",
+    title: "Permit to work walkthrough",
+    location: "Process Area 2",
+    date: "Nov 25, 2024",
+    week: "Week 5",
+    summary:
+      "Reviewed isolation and LOTO procedure before maintenance on a 415V MCC. Reinforced the hierarchy of energy isolation steps.",
+    tags: ["Electrical Safety", "LOTO"],
   },
   {
-    name: "David Oshodi",
-    role: "UI/UX Designer",
-    email: "david@tasko.com",
-    status: "active",
-    tasks: 6,
-    avatar: "/avatars/avatar-4.jpg",
-    initials: "DO",
+    title: "Cable termination practice",
+    location: "Workshop",
+    date: "Nov 22, 2024",
+    week: "Week 5",
+    summary:
+      "Hands-on practice glanding and terminating armoured cable. Understood the role of correct gland selection for hazardous areas.",
+    tags: ["Installation", "Hands-on"],
   },
 ]
 
 export function TeamContent() {
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teamMembers.map((member, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {journalEntries.map((entry, index) => (
           <Card
-            key={member.email}
+            key={entry.title}
             className="p-6 hover:shadow-lg transition-all duration-300 animate-slide-in"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="flex items-start justify-between mb-4">
-              <Avatar className="w-16 h-16 border-2 border-primary/20">
-                <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                <AvatarFallback>{member.initials}</AvatarFallback>
-              </Avatar>
-              <Button variant="ghost" size="icon">
+            <div className="flex items-start justify-between mb-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {entry.week}
+                  </Badge>
+                  <span className="flex items-center gap-1">
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    {entry.date}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-lg leading-snug text-balance">{entry.title}</h3>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
                 <MoreHorizontal className="w-4 h-4" />
+                <span className="sr-only">Entry options</span>
               </Button>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg">{member.name}</h3>
-                <p className="text-sm text-muted-foreground">{member.role}</p>
-              </div>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+              <MapPin className="w-4 h-4 shrink-0" />
+              {entry.location}
+            </p>
 
-              <Badge variant={member.status === "active" ? "default" : "secondary"}>
-                {member.status === "active" ? "Active" : "Away"}
-              </Badge>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">{entry.summary}</p>
 
-              <div className="pt-2 border-t border-border">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Active Tasks</span>
-                  <span className="font-semibold">{member.tasks}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                  <Mail className="w-4 h-4 mr-1" />
-                  Email
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                  <Phone className="w-4 h-4 mr-1" />
-                  Call
-                </Button>
-              </div>
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
+              {entry.tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
             </div>
           </Card>
         ))}

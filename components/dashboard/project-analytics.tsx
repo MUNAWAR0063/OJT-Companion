@@ -14,7 +14,7 @@ const chartData = [
   { day: "S", value: 50, label: "Saturday" },
 ]
 
-const barColors = ["#059669", "#047857", "#10b981", "#065f46", "#059669", "#047857", "#10b981"]
+const barColors = ["#3b82f6", "#2563eb", "#60a5fa", "#1d4ed8", "#3b82f6", "#2563eb", "#60a5fa"]
 
 export function ProjectAnalytics() {
   const [hoveredBar, setHoveredBar] = useState<number | null>(null)
@@ -39,10 +39,10 @@ export function ProjectAnalytics() {
       style={{ animationDelay: "400ms" }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-foreground">Project Analytics</h2>
+        <h2 className="text-xl font-semibold text-foreground">Learning Activity</h2>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-          <span>Weekly Activity</span>
+          <div className="w-2 h-2 rounded-full bg-primary"></div>
+          <span>Study Focus This Week</span>
         </div>
       </div>
 
@@ -51,8 +51,8 @@ export function ProjectAnalytics() {
           <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#047857" />
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="100%" stopColor="#2563eb" />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-muted/20" />
@@ -104,7 +104,7 @@ export function ProjectAnalytics() {
         </div>
         <div className="text-sm">
           <span className="text-muted-foreground">Peak: </span>
-          <span className="font-semibold text-emerald-600">{maxValue}%</span>
+          <span className="font-semibold text-primary">{maxValue}%</span>
         </div>
       </div>
     </Card>

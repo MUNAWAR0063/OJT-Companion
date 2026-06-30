@@ -9,8 +9,9 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Donezo - Project Management Dashboard",
-  description: "Plan, prioritize, and accomplish your tasks with ease",
+  title: "OJT Companion — Electrical Engineering Training Workspace",
+  description:
+    "A personal workspace to organize engineering learning, technical knowledge, field observations, and competency progress during an 18-week Electrical Engineering OJT.",
   generator: "v0.app",
   icons: {
     icon: [
@@ -37,9 +38,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider defaultTheme="light" storageKey="tasko-theme">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="ojt-theme">
           {children}
         </ThemeProvider>
         <Analytics />

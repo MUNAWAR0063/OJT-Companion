@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Mail, Bell } from "lucide-react"
+import { Search, BookMarked, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -23,7 +23,7 @@ export function Header({ title, description, actions }: HeaderProps) {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search task"
+              placeholder="Search notes, topics, documents..."
               className="pl-9 pr-3 md:pr-16 h-9 text-sm bg-card border-border transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
             />
             <kbd className="hidden md:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground bg-muted rounded border border-border">
@@ -38,7 +38,7 @@ export function Header({ title, description, actions }: HeaderProps) {
             size="icon"
             className="relative hover:bg-secondary transition-all duration-300 hover:scale-110 h-8 w-8"
           >
-            <Mail className="w-4 h-4" />
+            <BookMarked className="w-4 h-4" />
           </Button>
           <Button
             variant="ghost"
@@ -56,7 +56,7 @@ export function Header({ title, description, actions }: HeaderProps) {
             </Avatar>
             <div className="text-xs hidden sm:block">
               <p className="font-semibold text-foreground">Jessin Sam</p>
-              <p className="text-muted-foreground text-[10px]">jessin@gmail.com</p>
+              <p className="text-muted-foreground text-[10px]">Electrical Engineering Trainee</p>
             </div>
           </div>
         </div>

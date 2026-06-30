@@ -10,11 +10,11 @@ export default function CalendarPage() {
 
       <main className="flex-1 p-4 lg:p-6 lg:ml-64">
         <Header
-          title="Calendar"
-          description="Schedule and track your events and meetings."
+          title="Schedule"
+          description="Plan training sessions, site visits, and mentor reviews across your OJT."
           actions={
             <Button className="w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105">
-              + Add Event
+              + Add Session
             </Button>
           }
         />

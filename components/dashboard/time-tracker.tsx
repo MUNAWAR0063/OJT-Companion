@@ -47,7 +47,7 @@ export function TimeTracker() {
             <path
               d="M0,25 Q12.5,10 25,25 T50,25 T75,25 T100,25"
               fill="none"
-              stroke="oklch(0.42 0.15 155)"
+              stroke="oklch(0.63 0.16 250)"
               strokeWidth="2"
             />
           </svg>
@@ -55,7 +55,8 @@ export function TimeTracker() {
       </div>
 
       <div className="relative z-10">
-        <h2 className="text-lg font-semibold mb-4">Time Tracker</h2>
+        <h2 className="text-lg font-semibold mb-1">Field Time Logged</h2>
+        <p className="text-xs opacity-70 mb-4">This week</p>
         <div className="text-4xl sm:text-5xl font-mono font-bold mb-4 tracking-tight break-all">
           {formatTime(hours)}:{formatTime(minutes)}:{formatTime(secs)}
         </div>

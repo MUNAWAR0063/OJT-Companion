@@ -14,7 +14,7 @@ export default function LogoutPage() {
       <Sidebar />
 
       <main className="flex-1 p-4 lg:p-6 lg:ml-64">
-        <Header />
+        <Header title="Sign Out" description="End your current session." />
 
         <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
           <Card className="p-8 max-w-md w-full text-center space-y-6 animate-fade-in">
@@ -24,8 +24,8 @@ export default function LogoutPage() {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Logout</h1>
-              <p className="text-muted-foreground">Are you sure you want to logout?</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Sign Out</h1>
+              <p className="text-muted-foreground">Are you sure you want to sign out of OJT Companion?</p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1 bg-transparent" onClick={() => router.back()}>
