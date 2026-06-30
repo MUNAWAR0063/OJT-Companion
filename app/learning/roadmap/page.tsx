@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { ComingSoon } from "@/components/shared/coming-soon"
 import { Map } from "lucide-react"
 
@@ -8,13 +9,15 @@ export default function LearningRoadmapPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
 
-      <main className="flex-1 p-4 lg:p-6 lg:ml-64">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
+        <PageBreadcrumb />
+
         <Header
           title="Learning Roadmap"
           description="Map out competency milestones across the 18-week training program."
         />
 
-        <div className="mt-6">
+        <div className="mt-8">
           <ComingSoon
             icon={Map}
             title="Roadmap in progress"

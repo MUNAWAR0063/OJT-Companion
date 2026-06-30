@@ -1,7 +1,9 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
 import { TeamContent } from "@/components/team/team-content"
 import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
 export default function TeamPage() {
   return (
@@ -9,12 +11,15 @@ export default function TeamPage() {
       <Sidebar />
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
+        <PageBreadcrumb />
+
         <Header
-          title="Field Journal"
+          title="Field Notes"
           description="Document daily field observations, lessons learned, and site notes."
           actions={
-            <Button className="w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105">
-              + New Entry
+            <Button className="w-full sm:w-auto h-9 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 gap-2">
+              <Plus className="w-4 h-4" />
+              New Field Note
             </Button>
           }
         />
