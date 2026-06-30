@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,25 +23,38 @@ export function KnowledgeBaseInteractive() {
   const [tagInput, setTagInput] = useState("")
 
   const handleAddArticle = () => {
-    if (formData.title && formData.content && formData.category) {
-      addArticle({
-        title: formData.title,
-        content: formData.content,
-        category: formData.category,
-        tags: formData.tags.split(",").filter((t) => t.trim()),
-        importance: formData.importance,
-        mastered: false,
-      })
-
-      setFormData({
-        title: "",
-        content: "",
-        category: "",
-        tags: "",
-        importance: "medium",
-      })
-      setIsOpen(false)
+    if (!formData.title.trim()) {
+      toast.error("Article title is required")
+      return
     }
+    if (!formData.content.trim()) {
+      toast.error("Article content is required")
+      return
+    }
+    if (!formData.category.trim()) {
+      toast.error("Article category is required")
+      return
+    }
+
+    addArticle({
+      title: formData.title,
+      content: formData.content,
+      category: formData.category,
+      tags: formData.tags.split(",").filter((t) => t.trim()),
+      importance: formData.importance,
+      mastered: false,
+    })
+
+    toast.success(`Article "${formData.title}" added to knowledge base`)
+
+    setFormData({
+      title: "",
+      content: "",
+      category: "",
+      tags: "",
+      importance: "medium",
+    })
+    setIsOpen(false)
   }
 
   if (articles.length === 0) {

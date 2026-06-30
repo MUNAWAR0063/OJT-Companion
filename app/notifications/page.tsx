@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { EquipmentLibraryNew } from "@/components/equipment/equipment-library-new"
+import { NotificationsInteractive } from "@/components/notifications/notifications-interactive"
 
-export default function EquipmentLibraryPage() {
+export default function NotificationsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -12,12 +12,12 @@ export default function EquipmentLibraryPage() {
         <PageBreadcrumb />
 
         <Header
-          title="Equipment Library"
-          description="Catalog transformers, switchgear, motors, and protection devices you study on site."
+          title="Activity Feed"
+          description="View your recent weekly plans, equipment entries, documents, and other activities."
         />
 
         <div className="mt-8">
-          <EquipmentLibraryNew />
+          <NotificationsInteractive />
         </div>
       </main>
     </div>

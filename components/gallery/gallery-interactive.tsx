@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,25 +37,34 @@ export function GalleryInteractive() {
   }
 
   const handleAddPhoto = () => {
-    if (formData.title && selectedFile && preview) {
-      addPhoto({
-        title: formData.title,
-        location: formData.location,
-        description: formData.description,
-        tags: formData.tags.split(",").filter((t) => t.trim()),
-        data: preview,
-      })
-
-      setFormData({
-        title: "",
-        location: "",
-        description: "",
-        tags: "",
-      })
-      setSelectedFile(null)
-      setPreview("")
-      setIsOpen(false)
+    if (!formData.title.trim()) {
+      toast.error("Photo title is required")
+      return
     }
+    if (!selectedFile || !preview) {
+      toast.error("Please select a photo to upload")
+      return
+    }
+
+    addPhoto({
+      title: formData.title,
+      location: formData.location,
+      description: formData.description,
+      tags: formData.tags.split(",").filter((t) => t.trim()),
+      data: preview,
+    })
+
+    toast.success(`Photo "${formData.title}" added to gallery`)
+
+    setFormData({
+      title: "",
+      location: "",
+      description: "",
+      tags: "",
+    })
+    setSelectedFile(null)
+    setPreview("")
+    setIsOpen(false)
   }
 
   if (photos.length === 0) {

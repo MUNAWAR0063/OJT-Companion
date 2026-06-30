@@ -14,6 +14,7 @@ import {
   BarChart3,
   TrendingUp,
   FileBarChart,
+  Bell,
   Settings,
   ChevronDown,
 } from "lucide-react"
@@ -68,6 +69,7 @@ const navEntries: NavEntry[] = [
       { icon: FileBarChart, label: "Reports", href: "/reports" },
     ],
   },
+  { icon: Bell, label: "Activity Feed", href: "/notifications" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ]
 

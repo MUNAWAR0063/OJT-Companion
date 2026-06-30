@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppProvider } from "@/lib/app-context"
 import "./globals.css"
@@ -56,6 +57,14 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="ojt-theme">
           <AppProvider>{children}</AppProvider>
         </ThemeProvider>
+        <Toaster
+          theme="dark"
+          position="top-right"
+          expand={false}
+          richColors
+          closeButton
+          duration={3000}
+        />
         <Analytics />
       </body>
     </html>

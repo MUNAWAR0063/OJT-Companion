@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ import { useApp, type WeeklyPlan, type WeeklyObjective } from "@/lib/app-context
 export function WeeklyPlannerInteractive() {
   const { weeklyPlans, addWeeklyPlan, updateWeeklyPlan, deleteWeeklyPlan } = useApp()
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     weekNumber: (weeklyPlans.length + 1).toString(),
     tripNumber: 1,
@@ -51,8 +53,23 @@ export function WeeklyPlannerInteractive() {
     }))
   }
 
-  const handleCreateWeek = () => {
-    if (formData.tripName && formData.location && formData.objectives.length > 0) {
+  const handleCreateWeek = async () => {
+    if (!formData.tripName.trim()) {
+      toast.error("Trip name is required")
+      return
+    }
+    if (!formData.location.trim()) {
+      toast.error("Location is required")
+      return
+    }
+    if (formData.objectives.length === 0) {
+      toast.error("Add at least one objective")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
       const startDate = new Date()
       const endDate = new Date(startDate)
       endDate.setDate(endDate.getDate() + 7)
@@ -67,6 +84,8 @@ export function WeeklyPlannerInteractive() {
         objectives: formData.objectives as WeeklyObjective[],
       })
 
+      toast.success(`Week ${formData.weekNumber} plan created successfully`)
+
       setFormData({
         weekNumber: (weeklyPlans.length + 2).toString(),
         tripNumber: 1,
@@ -75,6 +94,8 @@ export function WeeklyPlannerInteractive() {
         objectives: [],
       })
       setIsOpen(false)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -174,8 +195,8 @@ export function WeeklyPlannerInteractive() {
                 <Button variant="outline" onClick={() => setIsOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateWeek} disabled={!formData.tripName || !formData.location || formData.objectives.length === 0}>
-                  Create Plan
+                <Button onClick={handleCreateWeek} disabled={!formData.tripName || !formData.location || formData.objectives.length === 0 || isLoading}>
+                  {isLoading ? "Creating..." : "Create Plan"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -276,8 +297,8 @@ export function WeeklyPlannerInteractive() {
               <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateWeek} disabled={!formData.tripName || !formData.location || formData.objectives.length === 0}>
-                Create Plan
+              <Button onClick={handleCreateWeek} disabled={!formData.tripName || !formData.location || formData.objectives.length === 0 || isLoading}>
+                {isLoading ? "Creating..." : "Create Plan"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -299,7 +320,10 @@ export function WeeklyPlannerInteractive() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => deleteWeeklyPlan(plan.id)}
+                  onClick={() => {
+                    deleteWeeklyPlan(plan.id)
+                    toast.success(`Week ${plan.weekNumber} deleted`)
+                  }}
                   className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                 >
                   <Trash2 className="w-4 h-4" />

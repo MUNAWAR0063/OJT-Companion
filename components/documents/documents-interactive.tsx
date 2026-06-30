@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,31 +27,44 @@ export function DocumentsInteractive() {
   }
 
   const handleAddDocument = async () => {
-    if (formData.name && selectedFile && formData.category) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string
-
-        addDocument({
-          name: formData.name,
-          type: selectedFile.type,
-          category: formData.category,
-          description: formData.description,
-          size: selectedFile.size,
-          uploadedAt: new Date(),
-          data: base64,
-        })
-
-        setFormData({
-          name: "",
-          description: "",
-          category: "",
-        })
-        setSelectedFile(null)
-        setIsOpen(false)
-      }
-      reader.readAsDataURL(selectedFile)
+    if (!formData.name.trim()) {
+      toast.error("Document name is required")
+      return
     }
+    if (!selectedFile) {
+      toast.error("Please select a file to upload")
+      return
+    }
+    if (!formData.category) {
+      toast.error("Document category is required")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+
+      addDocument({
+        name: formData.name,
+        type: selectedFile.type,
+        category: formData.category,
+        description: formData.description,
+        size: selectedFile.size,
+        uploadedAt: new Date(),
+        data: base64,
+      })
+
+      toast.success(`${formData.name} uploaded successfully`)
+
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+      })
+      setSelectedFile(null)
+      setIsOpen(false)
+    }
+    reader.readAsDataURL(selectedFile)
   }
 
   const formatFileSize = (bytes: number) => {

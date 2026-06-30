@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,24 +22,33 @@ export function FieldNotesInteractive() {
   })
 
   const handleAddNote = () => {
-    if (formData.title && formData.content) {
-      addFieldNote({
-        title: formData.title,
-        content: formData.content,
-        date: new Date(formData.date),
-        tags: formData.tags.split(",").filter((t) => t.trim()),
-        equipment: formData.equipment.split(",").filter((e) => e.trim()),
-      })
-
-      setFormData({
-        title: "",
-        content: "",
-        date: new Date().toISOString().split("T")[0],
-        tags: "",
-        equipment: "",
-      })
-      setIsOpen(false)
+    if (!formData.title.trim()) {
+      toast.error("Field note title is required")
+      return
     }
+    if (!formData.content.trim()) {
+      toast.error("Field note content is required")
+      return
+    }
+
+    addFieldNote({
+      title: formData.title,
+      content: formData.content,
+      date: new Date(formData.date),
+      tags: formData.tags.split(",").filter((t) => t.trim()),
+      equipment: formData.equipment.split(",").filter((e) => e.trim()),
+    })
+
+    toast.success(`Field note "${formData.title}" added`)
+
+    setFormData({
+      title: "",
+      content: "",
+      date: new Date().toISOString().split("T")[0],
+      tags: "",
+      equipment: "",
+    })
+    setIsOpen(false)
   }
 
   if (fieldNotes.length === 0) {

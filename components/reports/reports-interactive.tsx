@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,11 +17,15 @@ export function ReportsInteractive() {
   const stats = getStats()
 
   const handleGenerateReport = () => {
-    if (weekRange.trim()) {
-      generateReport(weekRange)
-      setWeekRange("")
-      setIsOpen(false)
+    if (!weekRange.trim()) {
+      toast.error("Week range is required (e.g., 'Weeks 1-4')")
+      return
     }
+
+    generateReport(weekRange)
+    toast.success(`Report for ${weekRange} generated`)
+    setWeekRange("")
+    setIsOpen(false)
   }
 
   const handleDownloadReport = (report: any) => {
