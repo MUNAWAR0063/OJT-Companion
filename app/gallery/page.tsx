@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { GalleryContentNew } from "@/components/gallery/gallery-content-new"
+import { GalleryInteractive } from "@/components/gallery/gallery-interactive"
 
 export default function PhotoGalleryPage() {
   return (
@@ -17,7 +17,7 @@ export default function PhotoGalleryPage() {
         />
 
         <div className="mt-8">
-          <GalleryContentNew />
+          <GalleryInteractive />
         </div>
       </main>
     </div>

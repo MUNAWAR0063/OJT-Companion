@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { TeamContentNew } from "@/components/team/team-content-new"
+import { FieldNotesInteractive } from "@/components/team/field-notes-interactive"
 
 export default function TeamPage() {
   return (
@@ -17,7 +17,7 @@ export default function TeamPage() {
         />
 
         <div className="mt-8">
-          <TeamContentNew />
+          <FieldNotesInteractive />
         </div>
       </main>
     </div>

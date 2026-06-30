@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { EquipmentLibraryNew } from "@/components/equipment/equipment-library-new"
+import { EquipmentLibraryInteractive } from "@/components/equipment/equipment-library-interactive"
 
 export default function EquipmentLibraryPage() {
   return (
@@ -17,7 +17,7 @@ export default function EquipmentLibraryPage() {
         />
 
         <div className="mt-8">
-          <EquipmentLibraryNew />
+          <EquipmentLibraryInteractive />
         </div>
       </main>
     </div>

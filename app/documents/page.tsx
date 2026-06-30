@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { DocumentsContentNew } from "@/components/documents/documents-content-new"
+import { DocumentsInteractive } from "@/components/documents/documents-interactive"
 
 export default function DocumentsPage() {
   return (
@@ -17,7 +17,7 @@ export default function DocumentsPage() {
         />
 
         <div className="mt-8">
-          <DocumentsContentNew />
+          <DocumentsInteractive />
         </div>
       </main>
     </div>

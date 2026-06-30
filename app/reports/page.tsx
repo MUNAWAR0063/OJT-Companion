@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { ReportsContentNew } from "@/components/reports/reports-content-new"
+import { ReportsInteractive } from "@/components/reports/reports-interactive"
 
 export default function ReportsPage() {
   return (
@@ -17,7 +17,7 @@ export default function ReportsPage() {
         />
 
         <div className="mt-8">
-          <ReportsContentNew />
+          <ReportsInteractive />
         </div>
       </main>
     </div>

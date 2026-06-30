@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AppProvider } from "@/lib/app-context"
 import "./globals.css"
 
 const inter = Inter({
@@ -53,7 +54,7 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="ojt-theme">
-          {children}
+          <AppProvider>{children}</AppProvider>
         </ThemeProvider>
         <Analytics />
       </body>

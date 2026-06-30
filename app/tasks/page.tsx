@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { TasksContentNew } from "@/components/tasks/tasks-content-new"
+import { KnowledgeBaseInteractive } from "@/components/tasks/knowledge-base-interactive"
 
 export default function TasksPage() {
   return (
@@ -17,7 +17,7 @@ export default function TasksPage() {
         />
 
         <div className="mt-8">
-          <TasksContentNew />
+          <KnowledgeBaseInteractive />
         </div>
       </main>
     </div>

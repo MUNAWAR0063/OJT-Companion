@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MobileNav } from "./mobile-nav"
+import { useApp } from "@/lib/app-context"
 import type { ReactNode } from "react"
 
 interface HeaderProps {
@@ -14,6 +15,13 @@ interface HeaderProps {
 }
 
 export function Header({ title, description, actions }: HeaderProps) {
+  const { userName } = useApp()
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+
   return (
     <header className="space-y-6 md:space-y-8 animate-slide-in-up">
       <div className="flex items-center justify-between gap-3 md:gap-4">
@@ -51,11 +59,11 @@ export function Header({ title, description, actions }: HeaderProps) {
 
           <div className="flex items-center gap-3 pl-3 md:pl-4 border-l border-border">
             <Avatar className="w-8 h-8 md:w-9 md:h-9 ring-2 ring-primary/20 transition-all duration-300 hover:ring-primary/40">
-              <AvatarImage src="/profile.jpg" alt="Salman" />
-              <AvatarFallback className="text-xs font-semibold">SA</AvatarFallback>
+              <AvatarImage src="/profile.jpg" alt={userName} />
+              <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
             </Avatar>
             <div className="text-xs hidden sm:block">
-              <p className="font-semibold text-foreground">Salman</p>
+              <p className="font-semibold text-foreground">{userName}</p>
               <p className="text-muted-foreground text-[11px]">Electrical Engineering Trainee</p>
             </div>
           </div>

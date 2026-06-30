@@ -1,17 +1,28 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
 import { MapPin, CalendarDays, Plane } from "lucide-react"
-
-const details = [
-  { icon: Plane, label: "Active OJT Assignment", value: "Trip 2 of 4" },
-  { icon: CalendarDays, label: "Training Progress", value: "Week 6 of 18" },
-  { icon: MapPin, label: "Field Location", value: "Ras Tanura Power Plant" },
-]
+import { useApp } from "@/lib/app-context"
 
 export function WelcomeCard() {
+  const { userName, weeklyPlans, getStats } = useApp()
+  const stats = getStats()
+  const currentWeek = weeklyPlans.length > 0 ? weeklyPlans[weeklyPlans.length - 1].weekNumber : 0
+  const totalWeeks = 18
+
+  const details = [
+    { icon: Plane, label: "Weekly Plans Created", value: `${weeklyPlans.length} weeks` },
+    { icon: CalendarDays, label: "Current Progress", value: `Week ${currentWeek}/${totalWeeks}` },
+    { icon: MapPin, label: "Data Collected", value: `${stats.equipmentCount + stats.articleCount + stats.fieldNoteCount} items` },
+  ]
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening"
+
   return (
     <Card className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up relative border-l-2 border-l-primary">
-      <p className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Good Morning</p>
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-balance text-foreground">Salman</h2>
+      <p className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">{greeting}</p>
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-balance text-foreground">{userName}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {details.map((item) => (
           <div key={item.label} className="flex items-start gap-3">

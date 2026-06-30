@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { WeeklyPlannerNew } from "@/components/planner/weekly-planner-new"
+import { WeeklyPlannerInteractive } from "@/components/planner/weekly-planner-interactive"
 
 export default function CalendarPage() {
   return (
@@ -17,7 +17,7 @@ export default function CalendarPage() {
         />
 
         <div className="mt-8">
-          <WeeklyPlannerNew />
+          <WeeklyPlannerInteractive />
         </div>
       </main>
     </div>

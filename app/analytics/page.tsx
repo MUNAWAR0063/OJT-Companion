@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
-import { AnalyticsContentNew } from "@/components/analytics/analytics-content-new"
+import { AnalyticsContentDynamic } from "@/components/analytics/analytics-content-dynamic"
 
 export default function AnalyticsPage() {
   return (
@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
         />
 
         <div className="mt-8">
-          <AnalyticsContentNew />
+          <AnalyticsContentDynamic />
         </div>
       </main>
     </div>
