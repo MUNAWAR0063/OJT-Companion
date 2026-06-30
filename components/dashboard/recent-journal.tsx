@@ -26,11 +26,11 @@ const entries = [
 export function RecentJournal() {
   return (
     <Card
-      className="p-6 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
+      className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "600ms" }}
     >
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Recent Field Notes</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg md:text-xl font-semibold text-foreground">Recent Field Notes</h2>
         <Button variant="ghost" size="sm" className="text-xs h-8 text-primary hover:text-primary">
           View all
         </Button>
@@ -39,18 +39,18 @@ export function RecentJournal() {
         {entries.map((entry) => (
           <div
             key={entry.title}
-            className="flex gap-3 p-3 rounded-xl border border-border transition-all duration-300 hover:shadow-md hover:border-primary/30 hover:scale-[1.01]"
+            className="flex gap-3 p-4 rounded-lg border border-border transition-all duration-300 hover:shadow-md hover:border-primary/30"
           >
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <NotebookPen className="w-4 h-4 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <NotebookPen className="w-5 h-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold text-foreground truncate">{entry.title}</h3>
-                <span className="text-[11px] text-muted-foreground whitespace-nowrap">{entry.time}</span>
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <h3 className="text-sm font-semibold text-foreground line-clamp-2">{entry.title}</h3>
+                <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 ml-2">{entry.time}</span>
               </div>
-              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{entry.excerpt}</p>
-              <span className="inline-block mt-1.5 text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{entry.excerpt}</p>
+              <span className="inline-block text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                 {entry.tag}
               </span>
             </div>

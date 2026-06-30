@@ -23,14 +23,14 @@ export default function DashboardPage() {
           description="Your competency and learning progress overview for this OJT assignment."
         />
 
-        <div className="mt-6 md:mt-8 space-y-5 md:space-y-6">
+        <div className="mt-8 md:mt-10 space-y-6 md:space-y-8">
           <WelcomeCard />
 
           <LearningProgress />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
-            <div className="lg:col-span-2 space-y-5 md:space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="lg:col-span-2 space-y-6 md:space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <TodaysFocus />
                 <CurrentLearning />
               </div>
@@ -38,7 +38,7 @@ export default function DashboardPage() {
               <RecentJournal />
             </div>
 
-            <div className="space-y-5 md:space-y-6">
+            <div className="space-y-6 md:space-y-8">
               <QuickActions />
               <WeeklyPlanner />
               <RecentDocuments />

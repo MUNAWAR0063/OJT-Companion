@@ -21,23 +21,23 @@ export function TodaysFocus() {
 
   return (
     <Card
-      className="p-6 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
+      className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "200ms" }}
     >
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">Today&apos;s Objectives</h2>
-        <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg md:text-xl font-semibold text-foreground">Today&apos;s Objectives</h2>
+        <span className="text-xs font-medium text-muted-foreground bg-muted px-3 py-1.5 rounded-full whitespace-nowrap">
           {completed}/{objectives.length} completed
         </span>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         {objectives.map((obj) => (
           <label
             key={obj.id}
             htmlFor={`obj-${obj.id}`}
-            className="flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-secondary/60"
+            className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-secondary/60"
           >
-            <Checkbox id={`obj-${obj.id}`} checked={obj.done} onCheckedChange={() => toggle(obj.id)} className="mt-0.5" />
+            <Checkbox id={`obj-${obj.id}`} checked={obj.done} onCheckedChange={() => toggle(obj.id)} className="mt-1" />
             <span
               className={`text-sm leading-relaxed transition-colors ${
                 obj.done ? "text-muted-foreground line-through" : "text-foreground"

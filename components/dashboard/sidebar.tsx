@@ -92,22 +92,22 @@ export function Sidebar() {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }))
 
   return (
-    <aside className="fixed top-0 left-0 w-64 bg-card border-r border-border p-4 h-screen overflow-y-auto lg:block">
-      <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-            <Zap className="w-4 h-4 text-primary-foreground" />
+    <aside className="fixed top-0 left-0 w-64 bg-card border-r border-border p-5 h-screen overflow-y-auto lg:block">
+      <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+        <Link href="/" className="flex items-center gap-3 w-full">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110 duration-300 flex-shrink-0">
+            <Zap className="w-5 h-5 text-primary-foreground" />
           </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-sm font-semibold text-foreground">OJT Companion</span>
-            <span className="text-[10px] text-muted-foreground">Electrical Engineering</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-sm font-semibold text-foreground truncate">OJT Companion</span>
+            <span className="text-xs text-muted-foreground truncate">Electrical Engineering</span>
           </div>
         </Link>
       </div>
 
       <div>
-        <p className="text-[10px] font-medium text-muted-foreground mb-2 uppercase tracking-wider">Navigation</p>
-        <nav className="space-y-0.5">
+        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Navigation</p>
+        <nav className="space-y-1">
           {navEntries.map((entry) => {
             if (!isGroup(entry)) {
               const isActive = pathname === entry.href
@@ -118,14 +118,14 @@ export function Sidebar() {
                   onMouseEnter={() => setHoveredItem(entry.label)}
                   onMouseLeave={() => setHoveredItem(null)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     hoveredItem === entry.label && !isActive && "translate-x-1",
                   )}
                 >
-                  <entry.icon className="w-4 h-4" />
+                  <entry.icon className="w-5 h-5" />
                   <span className="text-sm">{entry.label}</span>
                 </Link>
               )
@@ -143,14 +143,14 @@ export function Sidebar() {
                   onMouseLeave={() => setHoveredItem(null)}
                   aria-expanded={isOpen}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
                     hasActiveChild && !isOpen
                       ? "text-foreground bg-secondary/60"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     hoveredItem === entry.label && "translate-x-1",
                   )}
                 >
-                  <entry.icon className="w-4 h-4" />
+                  <entry.icon className="w-5 h-5" />
                   <span className="text-sm">{entry.label}</span>
                   <ChevronDown
                     className={cn(
@@ -167,7 +167,7 @@ export function Sidebar() {
                   )}
                 >
                   <div className="overflow-hidden">
-                    <div className="mt-0.5 ml-3.5 pl-3 border-l border-border space-y-0.5">
+                    <div className="mt-1 ml-3.5 pl-3 border-l border-border space-y-1">
                       {entry.children.map((child) => {
                         const isActive = pathname === child.href
                         return (
@@ -177,19 +177,19 @@ export function Sidebar() {
                             onMouseEnter={() => setHoveredItem(child.label)}
                             onMouseLeave={() => setHoveredItem(null)}
                             className={cn(
-                              "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-300",
+                              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300",
                               isActive
                                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                               hoveredItem === child.label && !isActive && "translate-x-1",
                             )}
                           >
-                            <child.icon className="w-4 h-4" />
+                            <child.icon className="w-5 h-5" />
                             <span className="text-sm">{child.label}</span>
                             {child.badge && (
                               <span
                                 className={cn(
-                                  "ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                                  "ml-auto text-xs font-semibold px-2 py-1 rounded-full",
                                   isActive
                                     ? "bg-primary-foreground/20 text-primary-foreground"
                                     : "bg-primary text-primary-foreground",

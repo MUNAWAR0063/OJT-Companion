@@ -29,27 +29,27 @@ export function KnowledgeCard({
 
   return (
     <Card
-      className={`p-4 transition-all duration-300 hover:shadow-lg cursor-pointer animate-slide-in-up ${
+      className={`p-5 md:p-6 transition-all duration-300 hover:shadow-lg cursor-pointer animate-slide-in-up ${
         mastered ? "opacity-60" : ""
       }`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-start justify-between gap-2">
           <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-          <Badge variant="outline" className={`text-xs ${config.color}`}>
+          <Badge variant="outline" className={`text-xs font-medium ${config.color}`}>
             {config.label}
           </Badge>
         </div>
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase">{category}</p>
-          <h3 className={`font-semibold text-sm text-foreground truncate ${mastered ? "line-through" : ""}`}>{topic}</h3>
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{description}</p>
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{category}</p>
+          <h3 className={`font-semibold text-sm leading-snug text-foreground ${mastered ? "line-through" : ""}`}>{topic}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{description}</p>
         </div>
         {mastered && (
-          <div className="flex items-center gap-1.5 pt-1 border-t border-border/50 text-xs text-green-600">
-            <Zap className="w-3 h-3" />
-            Mastered
+          <div className="flex items-center gap-1.5 pt-2 border-t border-border/50 text-xs text-success-foreground font-medium">
+            <Zap className="w-4 h-4" />
+            Proficient
           </div>
         )}
       </div>

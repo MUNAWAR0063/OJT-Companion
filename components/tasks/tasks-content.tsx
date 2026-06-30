@@ -81,25 +81,25 @@ export function TasksContent() {
         : entries.filter((t) => !t.mastered)
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col lg:flex-row gap-4">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
         <div className="flex-1 relative">
           <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search knowledge entries..." className="pl-10" />
+          <Input placeholder="Search knowledge entries..." className="pl-10 h-10" />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 bg-transparent">
+          <Button variant="outline" className="gap-2 bg-transparent h-10">
             <Filter className="w-4 h-4" />
             Category
           </Button>
-          <Button variant="outline" className="gap-2 bg-transparent">
+          <Button variant="outline" className="gap-2 bg-transparent h-10">
             <CalendarDays className="w-4 h-4" />
             Date
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")} size="sm">
           All ({entries.length})
         </Button>
@@ -115,7 +115,7 @@ export function TasksContent() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEntries.map((entry, index) => (
           <KnowledgeCard
             key={entry.id}

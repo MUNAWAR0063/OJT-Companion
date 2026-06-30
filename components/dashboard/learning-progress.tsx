@@ -63,11 +63,11 @@ function ProgressRing({ target, label, sublabel, delay }: { target: number; labe
 export function LearningProgress() {
   return (
     <Card
-      className="p-6 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
+      className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
       style={{ animationDelay: "100ms" }}
     >
-      <h2 className="text-xl font-semibold text-foreground mb-6">Competency Progress</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <h2 className="text-lg md:text-xl font-semibold text-foreground mb-8">Competency Progress</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
         {rings.map((ring, i) => (
           <ProgressRing key={ring.label} target={ring.target} label={ring.label} sublabel={ring.sublabel} delay={i * 200} />
         ))}

@@ -46,41 +46,41 @@ const journalEntries = [
 
 export function TeamContent() {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-8 animate-fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         {journalEntries.map((entry, index) => (
           <Card
             key={entry.title}
-            className="p-6 hover:shadow-lg transition-all duration-300 animate-slide-in"
+            className="p-6 md:p-8 hover:shadow-lg transition-all duration-300 animate-slide-in"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="space-y-1">
+            <div className="flex items-start justify-between mb-4 gap-2">
+              <div className="space-y-2 flex-1 min-w-0">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-xs font-medium">
                     {entry.week}
                   </Badge>
-                  <span className="flex items-center gap-1">
-                    <CalendarDays className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <CalendarDays className="w-4 h-4" />
                     {entry.date}
                   </span>
                 </div>
-                <h3 className="font-semibold text-lg leading-snug text-balance">{entry.title}</h3>
+                <h3 className="font-semibold text-base md:text-lg leading-snug text-balance">{entry.title}</h3>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <MoreHorizontal className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9">
+                <MoreHorizontal className="w-5 h-5" />
                 <span className="sr-only">Entry options</span>
               </Button>
             </div>
 
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
-              <MapPin className="w-4 h-4 shrink-0" />
+            <p className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              <MapPin className="w-5 h-5 shrink-0" />
               {entry.location}
             </p>
 
-            <p className="text-[15px] text-muted-foreground leading-relaxed reading-width mb-4">{entry.summary}</p>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-6">{entry.summary}</p>
 
-            <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
+            <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
               {entry.tags.map((tag) => (
                 <Badge key={tag} variant="outline" className="text-xs">
                   {tag}
