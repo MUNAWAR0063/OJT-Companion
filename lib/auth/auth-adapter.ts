@@ -177,12 +177,21 @@ export const authAdapter = {
   async getSession(): Promise<AuthResult | null> {
     if (isLocalAuthFallbackEnabled) return getStoredLocalAuthSession() as AuthResult | null
     if (!isSupabaseConfigured || !supabase) return null
-    const { data } = await supabase.auth.getSession()
-    if (!data.session?.user) return null
-    setSupabaseSessionCookie(data.session)
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !sessionData.session) {
+      clearSupabaseSessionCookie()
+      return null
+    }
 
-    const user = data.session.user
-    if ((user as { is_anonymous?: boolean }).is_anonymous) return null
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    const user = userData.user
+    if (userError || !user || (user as { is_anonymous?: boolean }).is_anonymous) {
+      clearSupabaseSessionCookie()
+      await supabase.auth.signOut({ scope: "local" })
+      return null
+    }
+
+    setSupabaseSessionCookie(sessionData.session)
     const profile = metadataProfile(user.email ?? "", user.user_metadata)
     return {
       user: mapUser(user.id, user.email ?? "", Boolean(user.email_confirmed_at), user.user_metadata.profileComplete === true),

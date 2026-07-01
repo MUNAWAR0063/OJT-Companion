@@ -591,3 +591,11 @@ Creating turbopack project {
  ✓ Compiled in 3.6s
  GET /calendar 200 in 1788ms (compile: 219ms, proxy.ts: 1022ms, render: 548ms)
  GET /calendar 200 in 1185ms (compile: 14ms, proxy.ts: 733ms, render: 437ms)
+ ✓ Compiled in 710ms
+ ✓ Compiled in 593ms
+ ✓ Compiled in 508ms
+ HEAD /register 200 in 869ms (compile: 244ms, proxy.ts: 133ms, render: 491ms)
+ HEAD /login 200 in 802ms (compile: 251ms, proxy.ts: 4ms, render: 547ms)
+ HEAD /forgot-password 200 in 588ms (compile: 223ms, proxy.ts: 4ms, render: 360ms)
+ HEAD /reset-password 200 in 1231ms (compile: 1123ms, render: 108ms)
+ HEAD /auth/callback 200 in 684ms (compile: 573ms, render: 111ms)

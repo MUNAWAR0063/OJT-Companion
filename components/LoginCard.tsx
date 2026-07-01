@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuthStore } from "@/lib/auth/auth-store"
+import { safeLoginDestination } from "@/lib/auth/auth-route-policy.mjs"
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -29,7 +30,7 @@ export function LoginCard() {
 
   useEffect(() => {
     const next = new URLSearchParams(window.location.search).get("next")
-    if (next?.startsWith("/")) setNextPath(next)
+    setNextPath(safeLoginDestination(next))
   }, [])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

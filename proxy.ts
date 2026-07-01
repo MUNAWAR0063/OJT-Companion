@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { AUTH_ACCESS_TOKEN_COOKIE } from "@/lib/auth/session-cookie.mjs"
-import { isProtectedRoute, isPublicAuthRoute, loginRedirectPath } from "@/lib/auth/auth-route-policy.mjs"
+import { authRouteRedirect } from "@/lib/auth/auth-route-policy.mjs"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey =
@@ -25,19 +25,13 @@ async function hasValidSupabaseSession(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   const isAuthenticated = await hasValidSupabaseSession(request)
+  const redirectPath = authRouteRedirect(pathname, search, isAuthenticated)
 
-  if (isProtectedRoute(pathname) && !isAuthenticated) {
+  if (redirectPath) {
     const url = request.nextUrl.clone()
-    const redirectPath = loginRedirectPath(pathname, search)
-    url.pathname = redirectPath.split("?")[0]
-    url.search = redirectPath.includes("?") ? `?${redirectPath.split("?")[1]}` : ""
-    return NextResponse.redirect(url)
-  }
-
-  if (isPublicAuthRoute(pathname) && isAuthenticated) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
-    url.search = ""
+    const [redirectPathname, redirectSearch = ""] = redirectPath.split("?")
+    url.pathname = redirectPathname
+    url.search = redirectSearch ? `?${redirectSearch}` : ""
     return NextResponse.redirect(url)
   }
 
