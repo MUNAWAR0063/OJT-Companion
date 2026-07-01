@@ -3,6 +3,14 @@
 import type { StateStorage } from "zustand/middleware"
 import { isLocalAuthFallbackEnabled, supabase } from "@/lib/supabase/client"
 import { getStoredLocalAuthSession } from "@/lib/auth/local-auth-session.mjs"
+import {
+  moduleForStorageKey,
+  moduleRowsToLegacyRecords,
+  parsePersistedValue,
+  persistedStateFromRows,
+  rowsForPersistedState,
+  storageKeyForModule,
+} from "@/lib/supabase/module-data-storage.mjs"
 
 const BUCKET = "ojt-attachments"
 const writeQueues = new Map<string, Promise<void>>()
@@ -10,6 +18,13 @@ const writeQueues = new Map<string, Promise<void>>()
 export interface AppStateRecord {
   storage_key: string
   state: unknown
+  updated_at: string
+}
+
+interface UserModuleDataRow {
+  module: string
+  scope_key: string
+  data: unknown
   updated_at: string
 }
 
@@ -128,27 +143,44 @@ async function writeState(name: string, value: string) {
   if (!supabase) return
   const ownerId = await userId()
   if (!ownerId) return
-  const parsed = JSON.parse(value) as unknown
-  const prepared = await prepareForStorage(parsed, ownerId, name)
-  const { data: previous } = await supabase
-    .from("app_state")
-    .select("state")
+  const module = moduleForStorageKey(name)
+  const parsed = parsePersistedValue(value) as unknown
+  const desiredRows = rowsForPersistedState(name, parsed)
+  const { data: previousRows } = await supabase
+    .from("user_module_data")
+    .select("module,scope_key,data,updated_at")
     .eq("user_id", ownerId)
-    .eq("storage_key", name)
-    .maybeSingle()
-  const { error } = await supabase.from("app_state").upsert(
-    {
+    .eq("module", module)
+
+  const rows = await Promise.all(
+    desiredRows.map(async (row) => ({
       user_id: ownerId,
-      storage_key: name,
-      state: prepared,
+      module: row.module,
+      scope_key: row.scope_key,
+      data: await prepareForStorage(row.data, ownerId, `${row.module}/${row.scope_key}`),
       updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,storage_key" }
+    }))
   )
+
+  const { error } = await supabase.from("user_module_data").upsert(rows, {
+    onConflict: "user_id,module,scope_key",
+  })
   if (error) throw toError(error, "Application data save failed")
 
-  const oldPaths = collectPaths(previous?.state)
-  const newPaths = collectPaths(prepared)
+  const desiredScopeKeys = new Set(rows.map((row) => row.scope_key))
+  const removedRows = ((previousRows ?? []) as UserModuleDataRow[]).filter((row) => !desiredScopeKeys.has(row.scope_key))
+  if (removedRows.length) {
+    const { error: deleteError } = await supabase
+      .from("user_module_data")
+      .delete()
+      .eq("user_id", ownerId)
+      .eq("module", module)
+      .in("scope_key", removedRows.map((row) => row.scope_key))
+    if (deleteError) throw toError(deleteError, "Application stale data cleanup failed")
+  }
+
+  const oldPaths = collectPaths((previousRows ?? []).map((row) => row.data))
+  const newPaths = collectPaths(rows.map((row) => row.data))
   const removedPaths = [...oldPaths].filter((path) => !newPaths.has(path))
   if (removedPaths.length) await supabase.storage.from(BUCKET).remove(removedPaths)
 }
@@ -163,15 +195,16 @@ export const supabaseStateStorage: StateStorage = {
     if (!supabase) return null
     const ownerId = await userId()
     if (!ownerId) return null
+    const module = moduleForStorageKey(name)
     const { data, error } = await supabase
-      .from("app_state")
-      .select("state")
+      .from("user_module_data")
+      .select("module,scope_key,data,updated_at")
       .eq("user_id", ownerId)
-      .eq("storage_key", name)
-      .maybeSingle()
+      .eq("module", module)
     if (error) throw toError(error, "Application data load failed")
-    if (!data) return null
-    return JSON.stringify(await hydrateStorageUrls(data.state))
+    const state = persistedStateFromRows(name, (data ?? []) as UserModuleDataRow[])
+    if (!state) return null
+    return JSON.stringify(await hydrateStorageUrls(state))
   },
 
   setItem: async (name, value) => {
@@ -208,19 +241,19 @@ export const supabaseStateStorage: StateStorage = {
     if (!supabase) return
     const ownerId = await userId()
     if (!ownerId) return
+    const module = moduleForStorageKey(name)
     const { data } = await supabase
-      .from("app_state")
-      .select("state")
+      .from("user_module_data")
+      .select("data")
       .eq("user_id", ownerId)
-      .eq("storage_key", name)
-      .maybeSingle()
-    const paths = [...collectPaths(data?.state)]
+      .eq("module", module)
+    const paths = [...collectPaths((data ?? []).map((row) => row.data))]
     if (paths.length) await supabase.storage.from(BUCKET).remove(paths)
     const { error } = await supabase
-      .from("app_state")
+      .from("user_module_data")
       .delete()
       .eq("user_id", ownerId)
-      .eq("storage_key", name)
+      .eq("module", module)
     if (error) throw toError(error, "Application data delete failed")
   },
 }
@@ -243,12 +276,12 @@ export async function fetchAppStateRecords() {
   const ownerId = await userId()
   if (!ownerId) return []
   const { data, error } = await supabase
-    .from("app_state")
-    .select("storage_key,state,updated_at")
+    .from("user_module_data")
+    .select("module,scope_key,data,updated_at")
     .eq("user_id", ownerId)
     .order("updated_at", { ascending: false })
   if (error) throw toError(error, "Application data records load failed")
-  return (data ?? []) as AppStateRecord[]
+  return moduleRowsToLegacyRecords((data ?? []) as UserModuleDataRow[]) as AppStateRecord[]
 }
 
 export async function exportAppState(excludedKeys: string[] = []) {
@@ -289,21 +322,27 @@ export async function replaceAppState(data: Record<string, string>) {
   previous.forEach((record) => collectPaths(record.state, previousPaths))
 
   const rows = await Promise.all(
-    Object.entries(data).map(async ([storageKey, value]) => ({
+    Object.entries(data).flatMap(([storageKey, value]) =>
+      rowsForPersistedState(storageKey, parsePersistedValue(value)).map((row) => ({
+        storageKey,
+        row,
+      }))
+    ).map(async ({ storageKey, row }) => ({
       user_id: ownerId,
-      storage_key: storageKey,
-      state: await prepareForStorage(JSON.parse(value) as unknown, ownerId, storageKey),
+      module: row.module,
+      scope_key: row.scope_key,
+      data: await prepareForStorage(row.data, ownerId, `${storageKey}/${row.scope_key}`),
       updated_at: new Date().toISOString(),
     }))
   )
   const nextPaths = new Set<string>()
-  rows.forEach((row) => collectPaths(row.state, nextPaths))
+  rows.forEach((row) => collectPaths(row.data, nextPaths))
 
-  const { error: deleteError } = await supabase.from("app_state").delete().eq("user_id", ownerId)
+  const { error: deleteError } = await supabase.from("user_module_data").delete().eq("user_id", ownerId)
   if (deleteError) throw toError(deleteError, "Application data replace failed")
 
   if (rows.length) {
-    const { error: insertError } = await supabase.from("app_state").insert(rows)
+    const { error: insertError } = await supabase.from("user_module_data").insert(rows)
     if (insertError) throw toError(insertError, "Application data import failed")
   }
 
@@ -328,7 +367,7 @@ export async function resetAppState() {
   const previous = await fetchAppStateRecords()
   const paths = previous.flatMap((record) => [...collectPaths(record.state)])
   if (paths.length) await supabase.storage.from(BUCKET).remove(paths)
-  const { error } = await supabase.from("app_state").delete().eq("user_id", ownerId)
+  const { error } = await supabase.from("user_module_data").delete().eq("user_id", ownerId)
   if (error) throw toError(error, "Application data reset failed")
 }
 
@@ -357,12 +396,14 @@ export async function subscribeToAppStateChanges(onChange: (storageKey: string) 
       {
         event: "*",
         schema: "public",
-        table: "app_state",
+        table: "user_module_data",
         filter: `user_id=eq.${ownerId}`,
       },
       (payload) => {
-        const record = (payload.new || payload.old) as { storage_key?: string }
-        if (record.storage_key) onChange(record.storage_key)
+        const record = (payload.new || payload.old) as { module?: string }
+        if (record.module) {
+          onChange(storageKeyForModule(record.module))
+        }
       }
     )
     .subscribe()

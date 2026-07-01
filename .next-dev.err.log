@@ -8063,3 +8063,7 @@ https://nextjs.org/docs/messages/module-not-found
  ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/client.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
  ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload when ./lib/supabase/client.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
