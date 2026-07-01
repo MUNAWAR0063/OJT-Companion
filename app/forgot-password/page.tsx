@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase/client"
 import { validatePasswordResetEmail } from "@/lib/auth/password-reset-validation.mjs"
+import { PASSWORD_RECOVERY_CALLBACK_URL } from "@/lib/auth/auth-urls"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -36,12 +37,12 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: PASSWORD_RECOVERY_CALLBACK_URL,
       })
       if (resetError) throw resetError
       setSent(true)
-    } catch (resetError) {
-      setError(resetError instanceof Error ? resetError.message : "Reset email could not be sent")
+    } catch {
+      setError("Link reset password tidak dapat dikirim. Silakan coba lagi.")
     } finally {
       setLoading(false)
     }
@@ -82,13 +83,13 @@ export default function ForgotPasswordPage() {
               {sent && (
                 <p className="flex items-start gap-2 rounded-md border border-success/40 bg-success/10 px-3 py-2 text-sm text-success">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                  Reset link sent. Check your email and open the link to create a new password.
+                  Link reset password sudah dikirim ke email kamu.
                 </p>
               )}
 
               <Button className="w-full" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send Reset Link
+                Kirim Link Reset Password
               </Button>
               <Button asChild variant="ghost" className="w-full">
                 <Link href="/login">Back to Login</Link>

@@ -571,3 +571,23 @@ Creating turbopack project {
  GET /login 200 in 1302ms (compile: 1160ms, proxy.ts: 7ms, render: 136ms)
  GET /login 200 in 506ms (compile: 11ms, proxy.ts: 13ms, render: 481ms)
  ✓ Compiled in 1039ms
+ ✓ Compiled in 870ms
+ GET /dashboard 200 in 1707ms (compile: 1093ms, proxy.ts: 384ms, render: 230ms)
+ GET /dashboard 200 in 239ms (compile: 11ms, proxy.ts: 168ms, render: 60ms)
+ ✓ Compiled in 682ms
+ GET /calendar 200 in 1656ms (compile: 758ms, proxy.ts: 562ms, render: 336ms)
+ GET /dashboard 200 in 1236ms (compile: 490ms, proxy.ts: 505ms, render: 242ms)
+ GET /calendar 200 in 1245ms (compile: 16ms, proxy.ts: 950ms, render: 278ms)
+ GET /learning/roadmap 200 in 3.5s (compile: 2.5s, proxy.ts: 262ms, render: 748ms)
+ GET /team 200 in 4.9s (compile: 4.5s, proxy.ts: 232ms, render: 149ms)
+ GET /team 200 in 644ms (compile: 104ms, proxy.ts: 364ms, render: 176ms)
+ GET /dashboard 200 in 494ms (compile: 47ms, proxy.ts: 403ms, render: 44ms)
+ GET /notifications 200 in 1049ms (compile: 553ms, proxy.ts: 383ms, render: 113ms)
+ ✓ Compiled in 1082ms
+ GET /dashboard 200 in 2.2s (compile: 329ms, proxy.ts: 1752ms, render: 108ms)
+ GET /calendar 200 in 1310ms (compile: 991ms, proxy.ts: 212ms, render: 107ms)
+ ✓ Compiled in 3.7s
+ ✓ Compiled in 4.9s
+ ✓ Compiled in 3.6s
+ GET /calendar 200 in 1788ms (compile: 219ms, proxy.ts: 1022ms, render: 548ms)
+ GET /calendar 200 in 1185ms (compile: 14ms, proxy.ts: 733ms, render: 437ms)

@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase/client"
 import { validateNewPassword } from "@/lib/auth/password-reset-validation.mjs"
+import { LOGIN_URL, PASSWORD_RECOVERY_SESSION_KEY } from "@/lib/auth/auth-urls"
+import { clearSupabaseSessionCookie } from "@/lib/auth/session-cookie.mjs"
 
 function recoveryLinkError() {
   if (typeof window === "undefined") return ""
@@ -56,6 +58,7 @@ export default function ResetPasswordPage() {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" && mounted) {
+        window.sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "true")
         setRecoveryReady(true)
         setError("")
         setCheckingLink(false)
@@ -67,7 +70,9 @@ export default function ResetPasswordPage() {
       .then(({ data, error: sessionError }) => {
         if (!mounted) return
         if (sessionError) throw sessionError
-        if (data.session) {
+        const recoveryAuthorized =
+          window.sessionStorage.getItem(PASSWORD_RECOVERY_SESSION_KEY) === "true"
+        if (data.session && recoveryAuthorized) {
           setRecoveryReady(true)
           setError("")
         } else {
@@ -90,7 +95,7 @@ export default function ResetPasswordPage() {
 
   const statusMessage = useMemo(() => {
     if (checkingLink) return "Checking reset link..."
-    if (success) return "Password updated. You can sign in with your new password."
+    if (success) return "Password berhasil diperbarui. Silakan login kembali."
     if (recoveryReady) return "Enter a new password for your account."
     return "Request a new reset link if this page was opened directly or the link expired."
   }, [checkingLink, recoveryReady, success])
@@ -120,9 +125,16 @@ export default function ResetPasswordPage() {
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
       if (updateError) throw updateError
+
+      await supabase.auth.signOut({ scope: "local" })
+      clearSupabaseSessionCookie()
+      window.sessionStorage.removeItem(PASSWORD_RECOVERY_SESSION_KEY)
       setSuccess(true)
       setNewPassword("")
       setConfirmPassword("")
+      window.setTimeout(() => {
+        window.location.replace(LOGIN_URL)
+      }, 1200)
     } catch (updateError) {
       setError(readableResetError(updateError))
     } finally {
@@ -172,16 +184,16 @@ export default function ResetPasswordPage() {
             {success && (
               <p className="flex items-start gap-2 rounded-md border border-success/40 bg-success/10 px-3 py-2 text-sm text-success">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                Password updated successfully.
+                Password berhasil diperbarui. Silakan login kembali.
               </p>
             )}
 
-            <Button className="w-full" disabled={loading || checkingLink || success}>
+            <Button className="w-full" disabled={loading || checkingLink || !recoveryReady || success}>
               {(loading || checkingLink) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Update Password
             </Button>
             <Button asChild variant="ghost" className="w-full">
-              <Link href={success ? "/login" : "/forgot-password"}>
+              <Link href={success ? LOGIN_URL : "/forgot-password"}>
                 {success ? "Back to Login" : "Request New Link"}
               </Link>
             </Button>
