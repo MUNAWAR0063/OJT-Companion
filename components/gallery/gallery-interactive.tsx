@@ -1,6 +1,6 @@
 "use client"
 
-import { type ChangeEvent, type DragEvent, useMemo, useRef, useState } from "react"
+import { type ChangeEvent, type DragEvent, useEffect, useMemo, useRef, useState } from "react"
 import {
   CalendarDays,
   Camera,
@@ -25,12 +25,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import {
   useGalleryStore,
-  type GalleryImage,
   type GalleryPhoto,
   type GalleryPhotoInput,
 } from "@/lib/gallery-store"
 import { useEquipmentStore } from "@/lib/equipment-store"
 import { useJournalStore } from "@/lib/journal-store"
+import { deleteModuleFile, listModuleFiles, uploadModuleFile } from "@/lib/supabase/file-storage"
+import { PHOTO_GALLERY_MODULE, validateModuleFile } from "@/lib/supabase/file-validation.mjs"
 
 const defaultCategories = [
   "Equipment",
@@ -81,12 +82,31 @@ export function GalleryInteractive() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<GalleryPhotoInput>(emptyForm)
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [selectedImageUrl, setSelectedImageUrl] = useState("")
+  const [fileUrls, setFileUrls] = useState<Record<string, string>>({})
+  const [uploading, setUploading] = useState(false)
   const [previewPhoto, setPreviewPhoto] = useState<GalleryPhoto | null>(null)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let active = true
+    listModuleFiles(PHOTO_GALLERY_MODULE)
+      .then((files) => {
+        if (!active) return
+        setFileUrls(Object.fromEntries(files.map((file) => [file.file_path, file.signedUrl])))
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Could not load photo previews"
+        toast.error(message)
+      })
+    return () => {
+      active = false
+    }
+  }, [photos])
 
   const categories = useMemo(
     () => Array.from(new Set([...defaultCategories, ...photos.map((photo) => photo.category)])).sort(),
@@ -116,6 +136,7 @@ export function GalleryInteractive() {
     setEditingId(null)
     setForm({ ...emptyForm, relatedEquipment: [], relatedJournal: [] })
     setSelectedImage(null)
+    setSelectedImageUrl("")
     setDialogOpen(true)
   }
 
@@ -123,39 +144,28 @@ export function GalleryInteractive() {
     setEditingId(photo.id)
     setForm(photoToInput(photo))
     setSelectedImage(null)
+    setSelectedImageUrl("")
     setDialogOpen(true)
   }
 
   const readImage = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Select an image file")
+    const validation = validateModuleFile({
+      module: PHOTO_GALLERY_MODULE,
+      fileName: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+    })
+    if (!validation.ok) {
+      toast.error(validation.message)
       return
     }
-    if (file.size > 1024 * 1024) {
-      toast.error(`${file.name} exceeds the 1 MB local image limit`)
-      return
-    }
-    const currentBytes = photos.reduce((total, photo) => total + photo.image.size, 0)
-    if (currentBytes + file.size > 2 * 1024 * 1024) {
-      toast.error("The 2 MB local gallery budget has been reached")
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result !== "string") return
-      setSelectedImage({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        dataUrl: reader.result,
-      })
-      setForm((current) => ({
-        ...current,
-        title: current.title || file.name.replace(/\.[^.]+$/, ""),
-      }))
-    }
-    reader.onerror = () => toast.error(`Could not read ${file.name}`)
-    reader.readAsDataURL(file)
+    if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl)
+    setSelectedImage(file)
+    setSelectedImageUrl(URL.createObjectURL(file))
+    setForm((current) => ({
+      ...current,
+      title: current.title || file.name.replace(/\.[^.]+$/, ""),
+    }))
   }
 
   const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +181,7 @@ export function GalleryInteractive() {
     if (file) readImage(file)
   }
 
-  const savePhoto = () => {
+  const savePhoto = async () => {
     if (!form.title.trim() || !form.category) {
       toast.error("Title and category are required")
       return
@@ -184,17 +194,54 @@ export function GalleryInteractive() {
         toast.error("Select a photo to upload")
         return
       }
-      createPhoto(form, selectedImage)
-      toast.success("Photo added to gallery")
+      setUploading(true)
+      try {
+        const id = crypto.randomUUID()
+        const file = await uploadModuleFile({
+          file: selectedImage,
+          module: PHOTO_GALLERY_MODULE,
+          scopeKey: id,
+        })
+        createPhoto(
+          form,
+          {
+            name: file.file_name,
+            type: file.mime_type,
+            size: file.size_bytes,
+            bucket: file.bucket,
+            filePath: file.file_path,
+          },
+          id
+        )
+        setFileUrls((current) => ({ ...current, [file.file_path]: selectedImageUrl }))
+        toast.success("Photo added to gallery")
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Photo upload failed"
+        toast.error(message)
+        return
+      } finally {
+        setUploading(false)
+      }
     }
     setDialogOpen(false)
   }
 
-  const removePhoto = (photo: GalleryPhoto) => {
+  const removePhoto = async (photo: GalleryPhoto) => {
     if (!window.confirm(`Delete "${photo.title}"?`)) return
-    deletePhoto(photo.id)
-    if (previewPhoto?.id === photo.id) setPreviewPhoto(null)
-    toast.success("Photo deleted")
+    try {
+      await deleteModuleFile(photo.image.filePath)
+      deletePhoto(photo.id)
+      setFileUrls((current) => {
+        const next = { ...current }
+        delete next[photo.image.filePath]
+        return next
+      })
+      if (previewPhoto?.id === photo.id) setPreviewPhoto(null)
+      toast.success("Photo deleted")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Photo could not be deleted"
+      toast.error(message)
+    }
   }
 
   const toggleRelation = (field: "relatedEquipment" | "relatedJournal", id: string) => {
@@ -211,7 +258,7 @@ export function GalleryInteractive() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-xl font-semibold">Photo Gallery</h2>
-          <p className="text-sm text-muted-foreground">{photos.length} browser-local photos</p>
+          <p className="text-sm text-muted-foreground">{photos.length} Supabase photos</p>
         </div>
         <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Photo</Button>
       </div>
@@ -263,7 +310,7 @@ export function GalleryInteractive() {
                 aria-label={`Preview ${photo.title}`}
               >
                 <img
-                  src={photo.image.dataUrl}
+                  src={fileUrls[photo.image.filePath] ?? ""}
                   alt={photo.title}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -284,7 +331,7 @@ export function GalleryInteractive() {
                 <div className="grid grid-cols-3 gap-2 border-t pt-3">
                   <Button size="sm" variant="outline" onClick={() => setPreviewPhoto(photo)}><Eye className="mr-1 h-3.5 w-3.5" />View</Button>
                   <Button size="sm" variant="ghost" onClick={() => openEdit(photo)}><Edit2 className="mr-1 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" onClick={() => removePhoto(photo)}><Trash2 className="mr-1 h-3.5 w-3.5 text-destructive" />Delete</Button>
+                  <Button size="sm" variant="ghost" onClick={() => void removePhoto(photo)}><Trash2 className="mr-1 h-3.5 w-3.5 text-destructive" />Delete</Button>
                 </div>
               </CardContent>
             </Card>
@@ -308,18 +355,18 @@ export function GalleryInteractive() {
                 >
                   {selectedImage ? (
                     <div className="grid gap-4 p-3 sm:grid-cols-[180px_1fr] sm:items-center">
-                      <img src={selectedImage.dataUrl} alt="Upload preview" className="aspect-[4/3] w-full rounded-md object-cover" />
+                      <img src={selectedImageUrl} alt="Upload preview" className="aspect-[4/3] w-full rounded-md object-cover" />
                       <div><p className="font-medium">{selectedImage.name}</p><p className="mt-1 text-sm text-muted-foreground">{formatBytes(selectedImage.size)} · Click to replace</p></div>
                     </div>
                   ) : (
                     <div className="p-8 text-center">
                       <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                       <p className="text-sm font-medium">Drop an image here or click to browse</p>
-                      <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, GIF · 1 MB maximum</p>
+                      <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, or WebP - 5 MB maximum</p>
                     </div>
                   )}
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*" className="sr-only" onChange={handleFileInput} />
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleFileInput} />
               </div>
             )}
             <div className="space-y-2">
@@ -368,7 +415,7 @@ export function GalleryInteractive() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={savePhoto}>{editingId ? "Save Changes" : "Add Photo"}</Button>
+            <Button onClick={() => void savePhoto()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Add Photo"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -378,7 +425,7 @@ export function GalleryInteractive() {
           {previewPhoto && (
             <>
               <div className="flex max-h-[72vh] min-h-[320px] items-center justify-center bg-black">
-                <img src={previewPhoto.image.dataUrl} alt={previewPhoto.title} className="max-h-[72vh] max-w-full object-contain" />
+                <img src={fileUrls[previewPhoto.image.filePath] ?? ""} alt={previewPhoto.title} className="max-h-[72vh] max-w-full object-contain" />
               </div>
               <div className="space-y-4 p-6">
                 <DialogHeader>

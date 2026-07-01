@@ -8,7 +8,8 @@ export interface GalleryImage {
   name: string
   type: string
   size: number
-  dataUrl: string
+  bucket: string
+  filePath: string
 }
 
 export interface GalleryPhoto {
@@ -35,7 +36,7 @@ export interface GalleryPhotoInput {
 
 interface GalleryStore {
   photos: GalleryPhoto[]
-  createPhoto: (input: GalleryPhotoInput, image: GalleryImage) => GalleryPhoto
+  createPhoto: (input: GalleryPhotoInput, image: GalleryImage, id?: string) => GalleryPhoto
   updatePhoto: (id: string, input: GalleryPhotoInput) => void
   deletePhoto: (id: string) => void
 }
@@ -47,10 +48,10 @@ export const useGalleryStore = create<GalleryStore>()(
     (set) => ({
       photos: [],
 
-      createPhoto: (input, image) => {
+      createPhoto: (input, image, id) => {
         const now = new Date().toISOString()
         const photo: GalleryPhoto = {
-          id: makeId(),
+          id: id ?? makeId(),
           title: input.title.trim(),
           category: input.category,
           location: input.location.trim(),
@@ -89,6 +90,18 @@ export const useGalleryStore = create<GalleryStore>()(
     {
       name: "ojt-photo-gallery",
       storage: createJSONStorage(() => supabaseStateStorage),
+      partialize: (state) => ({
+        photos: state.photos.map((photo) => ({
+          ...photo,
+          image: {
+            name: photo.image.name,
+            type: photo.image.type,
+            size: photo.image.size,
+            bucket: photo.image.bucket,
+            filePath: photo.image.filePath,
+          },
+        })),
+      }),
     }
   )
 )

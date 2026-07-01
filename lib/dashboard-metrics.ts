@@ -43,7 +43,7 @@ export function getDocumentProgress(documents: DocumentRecord[]) {
       const requirements = [
         document.title.trim().length > 0,
         document.category.trim().length > 0,
-        document.file.dataUrl.length > 0,
+        document.file.filePath.length > 0,
         document.description.trim().length > 0,
         document.tags.length > 0,
         document.relatedEquipment.length + document.relatedKnowledge.length > 0,

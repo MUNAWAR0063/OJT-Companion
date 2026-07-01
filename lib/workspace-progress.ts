@@ -142,7 +142,7 @@ export function useWorkspaceProgress(): WorkspaceProgressSummary {
         const requirements = [
           photo.title.trim().length > 0,
           photo.category.trim().length > 0,
-          photo.image.dataUrl.length > 0,
+          photo.image.filePath.length > 0,
           photo.notes.trim().length > 0,
           photo.relatedEquipment.length + photo.relatedJournal.length > 0,
         ]

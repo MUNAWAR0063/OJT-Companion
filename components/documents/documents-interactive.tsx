@@ -1,12 +1,11 @@
 "use client"
 
-import { type ChangeEvent, type DragEvent, useMemo, useRef, useState } from "react"
+import { type ChangeEvent, type DragEvent, useEffect, useMemo, useRef, useState } from "react"
 import {
   Download,
   Edit2,
   Eye,
   File,
-  FileImage,
   FileSpreadsheet,
   FileText,
   Link2,
@@ -29,10 +28,11 @@ import {
   useDocumentStore,
   type DocumentInput,
   type DocumentRecord,
-  type LocalDocumentFile,
 } from "@/lib/document-store"
 import { useEquipmentStore } from "@/lib/equipment-store"
 import { useKnowledgeStore } from "@/lib/knowledge-store"
+import { deleteModuleFile, listModuleFiles, uploadModuleFile } from "@/lib/supabase/file-storage"
+import { DOCUMENTS_MODULE, validateModuleFile } from "@/lib/supabase/file-validation.mjs"
 
 const defaultCategories = [
   "Standard",
@@ -73,14 +73,13 @@ function formatFileSize(bytes: number) {
 }
 
 function documentIcon(type: string) {
-  if (type.startsWith("image/")) return FileImage
   if (type.includes("sheet") || type.includes("excel") || type.includes("csv")) return FileSpreadsheet
   if (type.includes("pdf") || type.startsWith("text/")) return FileText
   return File
 }
 
 function canPreview(type: string) {
-  return type.startsWith("image/") || type === "application/pdf" || type.startsWith("text/")
+  return type === "application/pdf"
 }
 
 export function DocumentsInteractive() {
@@ -95,12 +94,30 @@ export function DocumentsInteractive() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<DocumentInput>(emptyForm)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [fileUrls, setFileUrls] = useState<Record<string, string>>({})
+  const [uploading, setUploading] = useState(false)
   const [previewDocument, setPreviewDocument] = useState<DocumentRecord | null>(null)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [tagFilter, setTagFilter] = useState("all")
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let active = true
+    listModuleFiles(DOCUMENTS_MODULE)
+      .then((files) => {
+        if (!active) return
+        setFileUrls(Object.fromEntries(files.map((file) => [file.file_path, file.signedUrl])))
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Could not load document files"
+        toast.error(message)
+      })
+    return () => {
+      active = false
+    }
+  }, [documents])
 
   const categories = useMemo(
     () => Array.from(new Set([...defaultCategories, ...documents.map((document) => document.category)])).sort(),
@@ -154,13 +171,14 @@ export function DocumentsInteractive() {
   }
 
   const validateFile = (file: File) => {
-    if (file.size > 1024 * 1024) {
-      toast.error(`${file.name} exceeds the 1 MB local file limit`)
-      return false
-    }
-    const currentBytes = documents.reduce((total, document) => total + document.file.size, 0)
-    if (currentBytes + file.size > 2 * 1024 * 1024) {
-      toast.error("The 2 MB local document storage budget has been reached")
+    const validation = validateModuleFile({
+      module: DOCUMENTS_MODULE,
+      fileName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      sizeBytes: file.size,
+    })
+    if (!validation.ok) {
+      toast.error(validation.message)
       return false
     }
     return true
@@ -186,25 +204,6 @@ export function DocumentsInteractive() {
     chooseFile(event.dataTransfer.files?.[0])
   }
 
-  const readFile = (file: File) =>
-    new Promise<LocalDocumentFile>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result !== "string") {
-          reject(new Error("Invalid file result"))
-          return
-        }
-        resolve({
-          name: file.name,
-          type: file.type || "application/octet-stream",
-          size: file.size,
-          dataUrl: reader.result,
-        })
-      }
-      reader.onerror = () => reject(reader.error ?? new Error("File read failed"))
-      reader.readAsDataURL(file)
-    })
-
   const saveDocument = async () => {
     if (!form.title.trim() || !form.category) {
       toast.error("Title and category are required")
@@ -220,21 +219,51 @@ export function DocumentsInteractive() {
       toast.error("Select a file to upload")
       return
     }
+    setUploading(true)
     try {
-      const file = await readFile(selectedFile)
-      createDocument(form, file)
+      const id = crypto.randomUUID()
+      const file = await uploadModuleFile({
+        file: selectedFile,
+        module: DOCUMENTS_MODULE,
+        scopeKey: id,
+      })
+      createDocument(
+        form,
+        {
+          name: file.file_name,
+          type: file.mime_type,
+          size: file.size_bytes,
+          bucket: file.bucket,
+          filePath: file.file_path,
+        },
+        id
+      )
       toast.success("Document uploaded")
       setDialogOpen(false)
-    } catch {
-      toast.error("The selected file could not be read")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Document upload failed"
+      toast.error(message)
+    } finally {
+      setUploading(false)
     }
   }
 
-  const removeDocument = (document: DocumentRecord) => {
+  const removeDocument = async (document: DocumentRecord) => {
     if (!window.confirm(`Delete "${document.title}"?`)) return
-    deleteDocument(document.id)
-    if (previewDocument?.id === document.id) setPreviewDocument(null)
-    toast.success("Document deleted")
+    try {
+      await deleteModuleFile(document.file.filePath)
+      deleteDocument(document.id)
+      setFileUrls((current) => {
+        const next = { ...current }
+        delete next[document.file.filePath]
+        return next
+      })
+      if (previewDocument?.id === document.id) setPreviewDocument(null)
+      toast.success("Document deleted")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Document could not be deleted"
+      toast.error(message)
+    }
   }
 
   const toggleRelation = (field: "relatedEquipment" | "relatedKnowledge", id: string) => {
@@ -251,7 +280,7 @@ export function DocumentsInteractive() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-xl font-semibold">Document Library</h2>
-          <p className="text-sm text-muted-foreground">{documents.length} browser-local documents</p>
+          <p className="text-sm text-muted-foreground">{documents.length} Supabase documents</p>
         </div>
         <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Document</Button>
       </div>
@@ -286,7 +315,7 @@ export function DocumentsInteractive() {
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No documents uploaded</h3>
               <p className="max-w-md text-sm text-muted-foreground">
-                Upload standards, diagrams, manuals, and datasheets for browser-local field reference.
+                Upload standards, diagrams, manuals, and datasheets for authenticated field reference.
               </p>
             </div>
             <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Document</Button>
@@ -330,10 +359,10 @@ export function DocumentsInteractive() {
                       <Eye className="mr-2 h-4 w-4" />{canPreview(document.file.type) ? "Preview" : "No Preview"}
                     </Button>
                     <Button asChild variant="outline">
-                      <a href={document.file.dataUrl} download={document.file.name}><Download className="mr-2 h-4 w-4" />Download</a>
+                      <a href={fileUrls[document.file.filePath] ?? "#"} download={document.file.name}><Download className="mr-2 h-4 w-4" />Download</a>
                     </Button>
                     <Button variant="ghost" onClick={() => openEdit(document)}><Edit2 className="mr-2 h-4 w-4" />Edit</Button>
-                    <Button variant="ghost" onClick={() => removeDocument(document)}><Trash2 className="mr-2 h-4 w-4 text-destructive" />Delete</Button>
+                    <Button variant="ghost" onClick={() => void removeDocument(document)}><Trash2 className="mr-2 h-4 w-4 text-destructive" />Delete</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -358,10 +387,10 @@ export function DocumentsInteractive() {
                 >
                   <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm font-medium">Drop a file here or click to browse</p>
-                  <p className="mt-1 text-xs text-muted-foreground">PDF, images, text, Office files, and engineering documents · 1 MB maximum</p>
+                  <p className="mt-1 text-xs text-muted-foreground">PDF, Word, Excel, or PowerPoint - 10 MB maximum</p>
                   {selectedFile && <p className="mt-3 text-sm text-primary">{selectedFile.name} · {formatFileSize(selectedFile.size)}</p>}
                 </div>
-                <input ref={fileInputRef} type="file" className="sr-only" onChange={handleFileInput} />
+                <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" className="sr-only" onChange={handleFileInput} />
               </div>
             )}
             <div className="space-y-2 sm:col-span-2">
@@ -410,7 +439,7 @@ export function DocumentsInteractive() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveDocument}>{editingId ? "Save Changes" : "Upload Document"}</Button>
+            <Button onClick={() => void saveDocument()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Upload Document"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -420,16 +449,12 @@ export function DocumentsInteractive() {
           <DialogHeader>
             <DialogTitle>{previewDocument?.title}</DialogTitle>
           </DialogHeader>
-          {previewDocument?.file.type.startsWith("image/") ? (
-            <div className="flex h-[calc(90vh-10rem)] items-center justify-center overflow-auto rounded-lg bg-muted/40 p-4">
-              <img src={previewDocument.file.dataUrl} alt={previewDocument.title} className="max-h-full max-w-full object-contain" />
-            </div>
-          ) : previewDocument && canPreview(previewDocument.file.type) ? (
-            <iframe src={previewDocument.file.dataUrl} title={previewDocument.title} className="h-[calc(90vh-10rem)] w-full rounded-lg border" />
+          {previewDocument && canPreview(previewDocument.file.type) ? (
+            <iframe src={fileUrls[previewDocument.file.filePath] ?? ""} title={previewDocument.title} className="h-[calc(90vh-10rem)] w-full rounded-lg border" />
           ) : null}
           {previewDocument && (
             <DialogFooter>
-              <Button asChild><a href={previewDocument.file.dataUrl} download={previewDocument.file.name}><Download className="mr-2 h-4 w-4" />Download</a></Button>
+              <Button asChild><a href={fileUrls[previewDocument.file.filePath] ?? "#"} download={previewDocument.file.name}><Download className="mr-2 h-4 w-4" />Download</a></Button>
             </DialogFooter>
           )}
         </DialogContent>

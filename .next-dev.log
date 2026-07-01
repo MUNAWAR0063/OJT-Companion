@@ -445,3 +445,5 @@ Creating turbopack project {
  GET /logout 200 in 475ms (compile: 22ms, proxy.ts: 367ms, render: 86ms)
  GET /login?next=%2Flogout 200 in 1454ms (compile: 70ms, proxy.ts: 798ms, render: 586ms)
  GET /login 200 in 876ms (compile: 256ms, proxy.ts: 46ms, render: 574ms)
+ ✓ Compiled in 815ms
+ ✓ Compiled in 562ms

@@ -8,7 +8,8 @@ export interface LocalDocumentFile {
   name: string
   type: string
   size: number
-  dataUrl: string
+  bucket: string
+  filePath: string
 }
 
 export interface DocumentRecord {
@@ -35,7 +36,7 @@ export interface DocumentInput {
 
 interface DocumentStore {
   documents: DocumentRecord[]
-  createDocument: (input: DocumentInput, file: LocalDocumentFile) => DocumentRecord
+  createDocument: (input: DocumentInput, file: LocalDocumentFile, id?: string) => DocumentRecord
   updateDocument: (id: string, input: DocumentInput) => void
   deleteDocument: (id: string) => void
 }
@@ -47,10 +48,10 @@ export const useDocumentStore = create<DocumentStore>()(
     (set) => ({
       documents: [],
 
-      createDocument: (input, file) => {
+      createDocument: (input, file, id) => {
         const now = new Date().toISOString()
         const document: DocumentRecord = {
-          id: makeId(),
+          id: id ?? makeId(),
           title: input.title.trim(),
           description: input.description.trim(),
           category: input.category,
@@ -91,6 +92,18 @@ export const useDocumentStore = create<DocumentStore>()(
     {
       name: "ojt-document-library",
       storage: createJSONStorage(() => supabaseStateStorage),
+      partialize: (state) => ({
+        documents: state.documents.map((document) => ({
+          ...document,
+          file: {
+            name: document.file.name,
+            type: document.file.type,
+            size: document.file.size,
+            bucket: document.file.bucket,
+            filePath: document.file.filePath,
+          },
+        })),
+      }),
     }
   )
 )
