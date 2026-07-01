@@ -1,0 +1,278 @@
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://127.0.0.1:3000
+   - Network:       http://127.0.0.1:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+Creating turbopack project {
+  dir: 'D:\\OJT Companion\\engineering-cards-creation',
+  testMode: true
+}
+ ✓ Ready in 1741ms
+ ○ Compiling /register ...
+ GET /register 200 in 16.8s (compile: 11.6s, render: 5.2s)
+ GET /login 200 in 1958ms (compile: 1664ms, render: 294ms)
+ GET /login 200 in 1265ms (compile: 15ms, render: 1250ms)
+ GET /register 200 in 180ms (compile: 12ms, render: 168ms)
+ GET /dashboard 200 in 1875ms (compile: 1580ms, render: 296ms)
+ GET /dashboard 200 in 141ms (compile: 30ms, render: 111ms)
+ GET /settings 200 in 2.9s (compile: 2.7s, render: 241ms)
+ GET /dashboard 200 in 125ms (compile: 17ms, render: 108ms)
+ GET /logout 200 in 940ms (compile: 728ms, render: 212ms)
+ GET /login?next=%2Flogout 200 in 125ms (compile: 14ms, render: 111ms)
+ GET /login 200 in 127ms (compile: 60ms, render: 67ms)
+ GET /register 200 in 193ms (compile: 10ms, render: 183ms)
+ GET /login 200 in 202ms (compile: 52ms, render: 150ms)
+ GET /login 200 in 786ms (compile: 15ms, render: 771ms)
+ GET /dashboard 200 in 49ms (compile: 11ms, render: 38ms)
+ GET /dashboard 200 in 49ms (compile: 7ms, render: 42ms)
+ GET /learning/roadmap 200 in 1458ms (compile: 1322ms, render: 135ms)
+ ○ Compiling /team ...
+ GET /equipment 200 in 2.4s (compile: 2.3s, render: 90ms)
+ GET /team 200 in 6.1s (compile: 6.0s, render: 86ms)
+ GET /tasks 200 in 1697ms (compile: 1521ms, render: 176ms)
+ GET /equipment 200 in 52ms (compile: 8ms, render: 43ms)
+ GET /tasks 200 in 45ms (compile: 8ms, render: 37ms)
+ GET /standards 200 in 1499ms (compile: 1415ms, render: 85ms)
+ GET /documents 200 in 1020ms (compile: 856ms, render: 163ms)
+ GET /learning/roadmap 200 in 94ms (compile: 17ms, render: 77ms)
+ GET /team 200 in 67ms (compile: 12ms, render: 54ms)
+ GET /calendar 200 in 1310ms (compile: 1224ms, render: 86ms)
+ GET /dashboard 200 in 40ms (compile: 7ms, render: 33ms)
+ GET /help 200 in 883ms (compile: 715ms, render: 167ms)
+ GET /notifications 200 in 651ms (compile: 579ms, render: 72ms)
+ ✓ Compiled in 1265ms
+ ✓ Compiled in 5.5s
+ GET /notifications 200 in 3.1s (compile: 2.4s, render: 748ms)
+ GET /notifications 200 in 4.7s (compile: 3.3s, render: 1406ms)
+ GET /notifications 200 in 192ms (compile: 23ms, render: 170ms)
+ GET /notifications 200 in 447ms (compile: 14ms, render: 433ms)
+ GET /dashboard 200 in 529ms (compile: 278ms, render: 251ms)
+ ✓ Compiled in 1238ms
+ ✓ Compiled in 634ms
+ GET /calendar 200 in 535ms (compile: 389ms, render: 146ms)
+ GET /equipment 200 in 659ms (compile: 342ms, render: 317ms)
+ GET /calendar 200 in 79ms (compile: 18ms, render: 61ms)
+ GET /logout 200 in 497ms (compile: 338ms, render: 160ms)
+ GET /login?next=%2Flogout 200 in 498ms (compile: 421ms, render: 77ms)
+ GET /login 200 in 489ms (compile: 275ms, render: 214ms)
+ GET /register 200 in 367ms (compile: 243ms, render: 124ms)
+ GET /login 200 in 101ms (compile: 17ms, render: 84ms)
+ GET /dashboard 200 in 525ms (compile: 338ms, render: 187ms)
+ GET /dashboard 200 in 125ms (compile: 14ms, render: 111ms)
+ GET /learning/roadmap 200 in 450ms (compile: 287ms, render: 163ms)
+ GET /equipment 200 in 90ms (compile: 18ms, render: 72ms)
+ GET /tasks 200 in 478ms (compile: 316ms, render: 162ms)
+ GET /equipment 200 in 69ms (compile: 14ms, render: 55ms)
+ GET /settings 200 in 1054ms (compile: 396ms, render: 658ms)
+ GET /dashboard 200 in 85ms (compile: 17ms, render: 68ms)
+ GET /settings 200 in 116ms (compile: 24ms, render: 92ms)
+ GET /dashboard 200 in 83ms (compile: 13ms, render: 70ms)
+ GET /dashboard 200 in 67ms (compile: 13ms, render: 54ms)
+ GET /calendar 200 in 131ms (compile: 19ms, render: 112ms)
+ GET /settings 200 in 87ms (compile: 16ms, render: 72ms)
+ GET /dashboard 200 in 89ms (compile: 19ms, render: 70ms)
+ GET /calendar 200 in 91ms (compile: 17ms, render: 74ms)
+ GET /learning/roadmap 200 in 94ms (compile: 18ms, render: 76ms)
+ GET /team 200 in 479ms (compile: 322ms, render: 158ms)
+ GET /analytics 200 in 1366ms (compile: 1172ms, render: 195ms)
+ GET /notifications 200 in 382ms (compile: 244ms, render: 138ms)
+ GET /help 200 in 455ms (compile: 335ms, render: 120ms)
+ GET /settings 200 in 73ms (compile: 15ms, render: 58ms)
+ GET /dashboard 200 in 70ms (compile: 13ms, render: 57ms)
+ GET /dashboard 200 in 757ms (compile: 19ms, render: 739ms)
+ GET /calendar 200 in 106ms (compile: 21ms, render: 84ms)
+ GET /learning/roadmap 200 in 88ms (compile: 18ms, render: 70ms)
+ GET /team 200 in 78ms (compile: 15ms, render: 63ms)
+ GET /calendar 200 in 61ms (compile: 16ms, render: 46ms)
+ GET /dashboard 200 in 83ms (compile: 24ms, render: 58ms)
+ GET /settings 200 in 110ms (compile: 19ms, render: 90ms)
+ GET /notifications 200 in 90ms (compile: 15ms, render: 75ms)
+ GET /analytics 200 in 143ms (compile: 28ms, render: 114ms)
+ GET /learning/roadmap 200 in 96ms (compile: 18ms, render: 78ms)
+ GET /calendar 200 in 70ms (compile: 11ms, render: 59ms)
+ GET /dashboard 200 in 69ms (compile: 16ms, render: 53ms)
+ GET /calendar 200 in 94ms (compile: 17ms, render: 77ms)
+ GET /dashboard 200 in 69ms (compile: 11ms, render: 58ms)
+ GET /learning/roadmap 200 in 146ms (compile: 18ms, render: 128ms)
+ GET /team 200 in 89ms (compile: 17ms, render: 72ms)
+ GET /calendar 200 in 95ms (compile: 18ms, render: 76ms)
+ GET /settings 200 in 98ms (compile: 13ms, render: 84ms)
+ ✓ Compiled in 2.3s
+ GET /settings 200 in 547ms (compile: 340ms, render: 207ms)
+ GET /settings 200 in 572ms (compile: 88ms, render: 484ms)
+ ✓ Compiled in 1075ms
+ ✓ Compiled in 1456ms
+ ✓ Compiled in 2.3s
+ ✓ Compiled in 627ms
+ ✓ Compiled in 628ms
+ ✓ Compiled in 1101ms
+ GET /settings 200 in 1281ms (compile: 565ms, render: 716ms)
+ ✓ Compiled in 1344ms
+ ✓ Compiled in 520ms
+ GET /settings 200 in 1726ms (compile: 403ms, render: 1323ms)
+ GET /dashboard 200 in 956ms (compile: 608ms, render: 348ms)
+ GET /calendar 200 in 952ms (compile: 628ms, render: 324ms)
+ GET /learning/roadmap 200 in 1081ms (compile: 664ms, render: 417ms)
+ GET /settings 200 in 81ms (compile: 16ms, render: 65ms)
+ GET /analytics 200 in 653ms (compile: 476ms, render: 177ms)
+ GET /analytics 200 in 884ms (compile: 27ms, render: 857ms)
+ GET /notifications 200 in 524ms (compile: 394ms, render: 131ms)
+ GET /help 200 in 524ms (compile: 381ms, render: 143ms)
+ GET /settings 200 in 101ms (compile: 16ms, render: 85ms)
+ ✓ Compiled in 3.1s
+ GET /settings 200 in 648ms (compile: 381ms, render: 268ms)
+ GET /help 200 in 419ms (compile: 283ms, render: 136ms)
+ GET /dashboard 200 in 629ms (compile: 345ms, render: 285ms)
+ GET /calendar 200 in 1217ms (compile: 935ms, render: 282ms)
+ GET /equipment 200 in 1278ms (compile: 971ms, render: 308ms)
+ GET /learning/roadmap 200 in 1101ms (compile: 778ms, render: 323ms)
+ GET /calendar 200 in 76ms (compile: 17ms, render: 59ms)
+ GET /dashboard 200 in 211ms (compile: 16ms, render: 195ms)
+ GET /calendar 200 in 88ms (compile: 13ms, render: 75ms)
+ GET /team 200 in 627ms (compile: 433ms, render: 194ms)
+ GET /tasks 200 in 1356ms (compile: 1211ms, render: 144ms)
+ ○ Compiling /gallery ...
+ GET /gallery 200 in 5.3s (compile: 4.9s, render: 407ms)
+ GET /documents 200 in 1593ms (compile: 1269ms, render: 324ms)
+ ✓ Compiled in 856ms
+ ✓ Compiled in 4.4s
+ ✓ Compiled in 869ms
+ GET /documents 200 in 766ms (compile: 497ms, render: 269ms)
+ GET /documents 200 in 154ms (compile: 17ms, render: 136ms)
+ GET /documents 200 in 136ms (compile: 17ms, render: 119ms)
+ GET /documents 200 in 120ms (compile: 17ms, render: 103ms)
+ GET /documents 200 in 68ms (compile: 15ms, render: 53ms)
+ ✓ Compiled in 983ms
+ GET /documents 200 in 108ms (compile: 16ms, render: 91ms)
+ GET /documents 200 in 104ms (compile: 15ms, render: 89ms)
+ GET /documents 200 in 99ms (compile: 16ms, render: 84ms)
+ GET /documents 200 in 102ms (compile: 15ms, render: 87ms)
+ GET /documents 200 in 104ms (compile: 14ms, render: 90ms)
+ GET /documents 200 in 96ms (compile: 15ms, render: 81ms)
+ GET /dashboard 200 in 499ms (compile: 366ms, render: 133ms)
+ ✓ Compiled in 1126ms
+ ✓ Compiled in 666ms
+ ✓ Compiled in 614ms
+ GET /calendar 200 in 860ms (compile: 517ms, render: 343ms)
+ GET /learning/roadmap 200 in 2.2s (compile: 1221ms, render: 933ms)
+ GET /dashboard 200 in 635ms (compile: 417ms, render: 218ms)
+ GET /help 200 in 1799ms (compile: 1312ms, render: 486ms)
+ GET /analytics 200 in 1959ms (compile: 1531ms, render: 428ms)
+ GET /logout 200 in 580ms (compile: 435ms, render: 145ms)
+ GET /login 200 in 1077ms (compile: 670ms, render: 407ms)
+ GET /login?next=%2Flogout 200 in 1100ms (compile: 333ms, render: 767ms)
+ ✓ Compiled in 1535ms
+ GET /login 200 in 1739ms (compile: 666ms, render: 1073ms)
+ ✓ Compiled in 1178ms
+ ✓ Compiled in 1259ms
+ GET /login 200 in 427ms (compile: 277ms, render: 149ms)
+ GET /login 200 in 44ms (compile: 6ms, render: 37ms)
+ GET /login 200 in 415ms (compile: 11ms, render: 404ms)
+ GET /dashboard 200 in 192ms (compile: 115ms, render: 77ms)
+ GET /dashboard 200 in 108ms (compile: 7ms, render: 101ms)
+ GET /calendar 200 in 152ms (compile: 66ms, render: 86ms)
+ GET /learning/roadmap 200 in 465ms (compile: 333ms, render: 132ms)
+ GET /settings 200 in 1810ms (compile: 1582ms, render: 228ms)
+ GET /logout 200 in 163ms (compile: 64ms, render: 99ms)
+ GET /login?next=%2Flogout 200 in 70ms (compile: 10ms, render: 60ms)
+ GET /login 200 in 38ms (compile: 8ms, render: 30ms)
+ ✓ Compiled in 799ms
+ ✓ Compiled in 627ms
+ ✓ Compiled in 1344ms
+ ✓ Compiled in 549ms
+ GET /login 200 in 1016ms (compile: 107ms, render: 910ms)
+ GET / 200 in 1227ms (compile: 703ms, render: 524ms)
+ GET /register 200 in 928ms (compile: 751ms, render: 177ms)
+ ✓ Compiled in 1006ms
+ GET / 200 in 275ms (compile: 183ms, render: 92ms)
+ ✓ Compiled in 220ms
+ GET / 200 in 492ms (compile: 343ms, render: 149ms)
+ ✓ Compiled in 1218ms
+ GET / 200 in 345ms (compile: 203ms, render: 142ms)
+ GET / 200 in 1437ms (compile: 12ms, render: 1426ms)
+ ✓ Compiled in 1309ms
+ GET /dashboard 200 in 88ms (compile: 33ms, render: 54ms)
+ GET /settings 200 in 214ms (compile: 89ms, render: 125ms)
+ GET /logout 200 in 85ms (compile: 24ms, render: 61ms)
+ GET /login?next=%2Flogout 200 in 115ms (compile: 21ms, render: 94ms)
+ GET /login 200 in 125ms (compile: 67ms, render: 57ms)
+ ✓ Compiled in 999ms
+ GET /login 200 in 143ms (compile: 45ms, render: 98ms)
+ GET /login?next=%2Fsettings 200 in 131ms (compile: 17ms, render: 114ms)
+ GET /login?next=%2Fsettings 200 in 72ms (compile: 12ms, render: 61ms)
+ GET /login?next=%2Fdashboard 200 in 686ms (compile: 298ms, render: 388ms)
+ GET /login?next=%2Fdashboard 200 in 141ms (compile: 20ms, render: 121ms)
+ GET /login 200 in 59ms (compile: 12ms, render: 47ms)
+ GET /login 200 in 237ms (compile: 28ms, render: 209ms)
+ GET /login 200 in 442ms (compile: 27ms, render: 415ms)
+ GET /dashboard 200 in 115ms (compile: 41ms, render: 74ms)
+ GET /dashboard 200 in 73ms (compile: 12ms, render: 61ms)
+ GET /settings 200 in 85ms (compile: 10ms, render: 75ms)
+ GET /logout 200 in 112ms (compile: 37ms, render: 75ms)
+ GET /login?next=%2Flogout 200 in 157ms (compile: 24ms, render: 132ms)
+ GET /login 200 in 90ms (compile: 13ms, render: 77ms)
+ GET / 200 in 2.4s (compile: 1623ms, render: 805ms)
+ GET / 200 in 209ms (compile: 9ms, render: 199ms)
+ ✓ Compiled in 776ms
+ GET / 200 in 372ms (compile: 214ms, render: 159ms)
+ ✓ Compiled in 2.5s
+ GET / 200 in 498ms (compile: 347ms, render: 151ms)
+ ✓ Compiled in 631ms
+ GET / 200 in 442ms (compile: 254ms, render: 189ms)
+ GET /dashboard 200 in 311ms (compile: 126ms, render: 185ms)
+ GET /logout 200 in 383ms (compile: 209ms, render: 174ms)
+ GET /login?next=%2Flogout 200 in 202ms (compile: 142ms, render: 60ms)
+ GET /login 200 in 192ms (compile: 43ms, render: 149ms)
+ GET /dashboard 200 in 40ms (compile: 9ms, render: 31ms)
+ GET /dashboard 200 in 56ms (compile: 8ms, render: 48ms)
+ GET /settings 200 in 104ms (compile: 18ms, render: 86ms)
+ GET /dashboard 200 in 87ms (compile: 7ms, render: 80ms)
+ ✓ Compiled in 5.1s
+ GET /dashboard 200 in 364ms (compile: 255ms, render: 110ms)
+ GET /dashboard 200 in 58ms (compile: 10ms, render: 48ms)
+ GET /dashboard 200 in 65ms (compile: 9ms, render: 56ms)
+ GET /dashboard 200 in 58ms (compile: 9ms, render: 48ms)
+ ✓ Compiled in 1042ms
+ GET /calendar 200 in 249ms (compile: 147ms, render: 102ms)
+ GET /logout 200 in 1021ms (compile: 544ms, render: 477ms)
+ GET /login 200 in 882ms (compile: 686ms, render: 196ms)
+ GET /login?next=%2Flogout 200 in 896ms (compile: 406ms, render: 491ms)
+ ✓ Compiled in 1272ms
+ GET /dashboard 200 in 217ms (compile: 37ms, render: 180ms)
+ GET /dashboard 200 in 148ms (compile: 31ms, render: 117ms)
+ GET /calendar 200 in 512ms (compile: 117ms, render: 395ms)
+ GET /learning/roadmap 200 in 326ms (compile: 99ms, render: 227ms)
+ GET /team 200 in 1117ms (compile: 503ms, render: 614ms)
+ GET /help 200 in 211ms (compile: 129ms, render: 81ms)
+ ✓ Compiled in 646ms
+ GET /notifications 200 in 2.1s (compile: 1940ms, render: 129ms)
+ GET /analytics 200 in 271ms (compile: 120ms, render: 151ms)
+ GET /equipment 200 in 515ms (compile: 353ms, render: 162ms)
+ GET /help 200 in 1463ms (compile: 1150ms, render: 313ms)
+ GET /settings 200 in 128ms (compile: 54ms, render: 74ms)
+ GET /notifications 200 in 199ms (compile: 58ms, render: 141ms)
+ GET /help 200 in 453ms (compile: 72ms, render: 382ms)
+ ✓ Compiled in 4.8s
+ GET /settings 200 in 158ms (compile: 16ms, render: 142ms)
+ ✓ Compiled in 755ms
+ ✓ Compiled in 468ms
+ ✓ Compiled in 1030ms
+ GET /dashboard 200 in 2.1s (compile: 1867ms, render: 230ms)
+ GET /dashboard 200 in 74ms (compile: 11ms, render: 64ms)
+ GET /calendar 200 in 498ms (compile: 333ms, render: 165ms)
+ GET /learning/roadmap 200 in 1710ms (compile: 1531ms, render: 179ms)
+ GET /team 200 in 881ms (compile: 782ms, render: 99ms)
+ GET /equipment 200 in 1327ms (compile: 959ms, render: 368ms)
+ GET /documents 200 in 3.8s (compile: 3.1s, render: 716ms)
+ GET /notifications 200 in 1101ms (compile: 978ms, render: 123ms)
+ GET /dashboard 200 in 81ms (compile: 8ms, render: 73ms)
+ ✓ Compiled in 1041ms
+ GET /dashboard 200 in 416ms (compile: 249ms, render: 167ms)
+ GET /dashboard 200 in 80ms (compile: 10ms, render: 69ms)
+ GET /calendar 200 in 468ms (compile: 359ms, render: 110ms)
+ GET /learning/roadmap 200 in 2.1s (compile: 1663ms, render: 398ms)
+ GET /team 200 in 320ms (compile: 222ms, render: 98ms)
+ GET /logout 200 in 538ms (compile: 386ms, render: 152ms)
+ GET /login?next=%2Flogout 200 in 1452ms (compile: 766ms, render: 686ms)
+ GET /login 200 in 153ms (compile: 18ms, render: 136ms)

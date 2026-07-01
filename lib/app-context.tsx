@@ -99,10 +99,6 @@ export interface AppReport {
 }
 
 interface AppContextType {
-  // User data
-  userName: string
-  setUserName: (name: string) => void
-  
   // Weekly plans
   weeklyPlans: WeeklyPlan[]
   addWeeklyPlan: (plan: Omit<WeeklyPlan, "id" | "createdAt">) => void
@@ -156,7 +152,6 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [userName, setUserName] = useState("User")
   const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlan[]>([])
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [articles, setArticles] = useState<KnowledgeArticle[]>([])
@@ -288,8 +283,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [weeklyPlans, equipment, articles, fieldNotes, documents, photos])
 
   const value: AppContextType = {
-    userName,
-    setUserName,
     weeklyPlans,
     addWeeklyPlan,
     updateWeeklyPlan,

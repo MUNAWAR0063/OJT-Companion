@@ -2,18 +2,32 @@
 
 import { Card } from "@/components/ui/card"
 import { MapPin, CalendarDays, Plane } from "lucide-react"
-import { useApp } from "@/lib/app-context"
+import { getProfileDisplayName, useUserProfileStore } from "@/lib/user-profile-store"
+import { usePlannerStore } from "@/lib/planner-store"
+import { useEquipmentStore } from "@/lib/equipment-store"
+import { useKnowledgeStore } from "@/lib/knowledge-store"
+import { useJournalStore } from "@/lib/journal-store"
+import { useDocumentStore } from "@/lib/document-store"
+import { useGalleryStore } from "@/lib/gallery-store"
+import { useStandardsStore } from "@/lib/standards-store"
 
 export function WelcomeCard() {
-  const { userName, weeklyPlans, getStats } = useApp()
-  const stats = getStats()
+  const profile = useUserProfileStore((state) => state.profile)
+  const userName = getProfileDisplayName(profile)
+  const weeklyPlans = usePlannerStore((state) => state.weeks)
+  const equipment = useEquipmentStore((state) => state.equipment)
+  const knowledgeArticles = useKnowledgeStore((state) => state.articles)
+  const journalEntries = useJournalStore((state) => state.entries)
+  const documents = useDocumentStore((state) => state.documents)
+  const galleryPhotos = useGalleryStore((state) => state.photos)
+  const standards = useStandardsStore((state) => state.standards)
   const currentWeek = weeklyPlans.length > 0 ? weeklyPlans[weeklyPlans.length - 1].weekNumber : 0
   const totalWeeks = 18
 
   const details = [
     { icon: Plane, label: "Weekly Plans Created", value: `${weeklyPlans.length} weeks` },
     { icon: CalendarDays, label: "Current Progress", value: `Week ${currentWeek}/${totalWeeks}` },
-    { icon: MapPin, label: "Data Collected", value: `${stats.equipmentCount + stats.articleCount + stats.fieldNoteCount} items` },
+    { icon: MapPin, label: "Data Collected", value: `${equipment.length + knowledgeArticles.length + journalEntries.length + documents.length + galleryPhotos.length + standards.length} items` },
   ]
 
   const hour = new Date().getHours()

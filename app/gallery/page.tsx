@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { PageBreadcrumb } from "@/components/shared/page-breadcrumb"
@@ -5,21 +6,25 @@ import { GalleryInteractive } from "@/components/gallery/gallery-interactive"
 
 export default function PhotoGalleryPage() {
   return (
-    <div className="flex min-h-screen bg-background">
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-background">
       <Sidebar />
 
-      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
-        <PageBreadcrumb />
-
+      <main className="app-main-content flex-1 p-4 md:p-6 min-[1280px]:p-8">
         <Header
-          title="Project Gallery"
-          description="Document field observations with annotated site and equipment photos."
+          title="Photo Gallery"
+          description="Build a visual engineering record linked to equipment and daily journal entries."
         />
+
+        <PageBreadcrumb />
 
         <div className="mt-8">
           <GalleryInteractive />
         </div>
       </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }
+
+

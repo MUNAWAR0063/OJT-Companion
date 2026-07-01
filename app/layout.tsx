@@ -2,9 +2,14 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Toaster } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppProvider } from "@/lib/app-context"
+import { SidebarStateProvider } from "@/lib/sidebar-state"
+import { NotificationEngine } from "@/components/notifications/notification-engine"
+import { SettingsRuntime } from "@/components/settings/settings-runtime"
+import { SupabaseRuntime } from "@/components/supabase-runtime"
+import { AuthRuntime } from "@/components/auth/auth-runtime"
 import "./globals.css"
 
 const inter = Inter({
@@ -19,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "OJT Companion — Electrical Engineering Training Workspace",
+  title: "OJT Companion - OADP 2026",
   description:
     "A personal workspace to organize engineering learning, technical knowledge, field observations, and competency progress during an 18-week Electrical Engineering OJT.",
   generator: "v0.app",
@@ -54,11 +59,18 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="ojt-theme">
-          <AppProvider>{children}</AppProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="ojt-theme">
+          <AppProvider>
+            <SidebarStateProvider>
+              <SupabaseRuntime />
+              <AuthRuntime />
+              <SettingsRuntime />
+              <NotificationEngine />
+              {children}
+            </SidebarStateProvider>
+          </AppProvider>
         </ThemeProvider>
         <Toaster
-          theme="dark"
           position="top-right"
           expand={false}
           richColors

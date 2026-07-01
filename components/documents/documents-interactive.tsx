@@ -1,305 +1,439 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { type ChangeEvent, type DragEvent, useMemo, useRef, useState } from "react"
+import {
+  Download,
+  Edit2,
+  Eye,
+  File,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  Link2,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+  Wrench,
+} from "lucide-react"
 import { toast } from "sonner"
-import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Trash2, FileText, Upload } from "lucide-react"
-import { useApp } from "@/lib/app-context"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  useDocumentStore,
+  type DocumentInput,
+  type DocumentRecord,
+  type LocalDocumentFile,
+} from "@/lib/document-store"
+import { useEquipmentStore } from "@/lib/equipment-store"
+import { useKnowledgeStore } from "@/lib/knowledge-store"
+
+const defaultCategories = [
+  "Standard",
+  "Manual",
+  "Datasheet",
+  "Single-Line Diagram",
+  "Procedure",
+  "Drawing",
+  "Report",
+  "Certificate",
+  "Other",
+]
+
+const emptyForm: DocumentInput = {
+  title: "",
+  description: "",
+  category: "Standard",
+  tags: [],
+  relatedEquipment: [],
+  relatedKnowledge: [],
+}
+
+function recordToInput(document: DocumentRecord): DocumentInput {
+  return {
+    title: document.title,
+    description: document.description,
+    category: document.category,
+    tags: document.tags,
+    relatedEquipment: document.relatedEquipment,
+    relatedKnowledge: document.relatedKnowledge,
+  }
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function documentIcon(type: string) {
+  if (type.startsWith("image/")) return FileImage
+  if (type.includes("sheet") || type.includes("excel") || type.includes("csv")) return FileSpreadsheet
+  if (type.includes("pdf") || type.startsWith("text/")) return FileText
+  return File
+}
+
+function canPreview(type: string) {
+  return type.startsWith("image/") || type === "application/pdf" || type.startsWith("text/")
+}
 
 export function DocumentsInteractive() {
-  const { documents, addDocument, deleteDocument } = useApp()
-  const [isOpen, setIsOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category: "",
-  })
+  const documents = useDocumentStore((state) => state.documents)
+  const createDocument = useDocumentStore((state) => state.createDocument)
+  const updateDocument = useDocumentStore((state) => state.updateDocument)
+  const deleteDocument = useDocumentStore((state) => state.deleteDocument)
+  const equipment = useEquipmentStore((state) => state.equipment)
+  const articles = useKnowledgeStore((state) => state.articles)
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<DocumentInput>(emptyForm)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewDocument, setPreviewDocument] = useState<DocumentRecord | null>(null)
+  const [search, setSearch] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [tagFilter, setTagFilter] = useState("all")
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setSelectedFile(e.target.files[0])
-    }
+  const categories = useMemo(
+    () => Array.from(new Set([...defaultCategories, ...documents.map((document) => document.category)])).sort(),
+    [documents]
+  )
+  const tags = useMemo(
+    () => Array.from(new Set(documents.flatMap((document) => document.tags))).sort(),
+    [documents]
+  )
+  const filteredDocuments = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    return documents.filter((document) => {
+      const equipmentNames = document.relatedEquipment
+        .map((id) => equipment.find((item) => item.id === id)?.name ?? "")
+        .join(" ")
+      const articleNames = document.relatedKnowledge
+        .map((id) => articles.find((article) => article.id === id)?.title ?? "")
+        .join(" ")
+      return (
+        (categoryFilter === "all" || document.category === categoryFilter) &&
+        (tagFilter === "all" || document.tags.includes(tagFilter)) &&
+        (!query ||
+          [
+            document.title,
+            document.description,
+            document.category,
+            document.file.name,
+            document.tags.join(" "),
+            equipmentNames,
+            articleNames,
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query))
+      )
+    })
+  }, [articles, categoryFilter, documents, equipment, search, tagFilter])
+
+  const openUpload = () => {
+    setEditingId(null)
+    setForm({ ...emptyForm, tags: [], relatedEquipment: [], relatedKnowledge: [] })
+    setSelectedFile(null)
+    setDialogOpen(true)
   }
 
-  const handleAddDocument = async () => {
-    if (!formData.name.trim()) {
-      toast.error("Document name is required")
+  const openEdit = (document: DocumentRecord) => {
+    setEditingId(document.id)
+    setForm(recordToInput(document))
+    setSelectedFile(null)
+    setDialogOpen(true)
+  }
+
+  const validateFile = (file: File) => {
+    if (file.size > 1024 * 1024) {
+      toast.error(`${file.name} exceeds the 1 MB local file limit`)
+      return false
+    }
+    const currentBytes = documents.reduce((total, document) => total + document.file.size, 0)
+    if (currentBytes + file.size > 2 * 1024 * 1024) {
+      toast.error("The 2 MB local document storage budget has been reached")
+      return false
+    }
+    return true
+  }
+
+  const chooseFile = (file: File | undefined) => {
+    if (!file || !validateFile(file)) return
+    setSelectedFile(file)
+    setForm((current) => ({
+      ...current,
+      title: current.title || file.name.replace(/\.[^.]+$/, ""),
+    }))
+  }
+
+  const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
+    chooseFile(event.target.files?.[0])
+    event.target.value = ""
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+    chooseFile(event.dataTransfer.files?.[0])
+  }
+
+  const readFile = (file: File) =>
+    new Promise<LocalDocumentFile>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Invalid file result"))
+          return
+        }
+        resolve({
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+          dataUrl: reader.result,
+        })
+      }
+      reader.onerror = () => reject(reader.error ?? new Error("File read failed"))
+      reader.readAsDataURL(file)
+    })
+
+  const saveDocument = async () => {
+    if (!form.title.trim() || !form.category) {
+      toast.error("Title and category are required")
+      return
+    }
+    if (editingId) {
+      updateDocument(editingId, form)
+      toast.success("Document updated")
+      setDialogOpen(false)
       return
     }
     if (!selectedFile) {
-      toast.error("Please select a file to upload")
+      toast.error("Select a file to upload")
       return
     }
-    if (!formData.category) {
-      toast.error("Document category is required")
-      return
+    try {
+      const file = await readFile(selectedFile)
+      createDocument(form, file)
+      toast.success("Document uploaded")
+      setDialogOpen(false)
+    } catch {
+      toast.error("The selected file could not be read")
     }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string
-
-      addDocument({
-        name: formData.name,
-        type: selectedFile.type,
-        category: formData.category,
-        description: formData.description,
-        size: selectedFile.size,
-        uploadedAt: new Date(),
-        data: base64,
-      })
-
-      toast.success(`${formData.name} uploaded successfully`)
-
-      setFormData({
-        name: "",
-        description: "",
-        category: "",
-      })
-      setSelectedFile(null)
-      setIsOpen(false)
-    }
-    reader.readAsDataURL(selectedFile)
   }
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i]
+  const removeDocument = (document: DocumentRecord) => {
+    if (!window.confirm(`Delete "${document.title}"?`)) return
+    deleteDocument(document.id)
+    if (previewDocument?.id === document.id) setPreviewDocument(null)
+    toast.success("Document deleted")
   }
 
-  if (documents.length === 0) {
-    return (
-      <Card className="p-8">
-        <div className="text-center space-y-6 py-8">
-          <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto" />
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-foreground">No documents uploaded</h3>
-            <p className="text-xs text-muted-foreground">Upload diagrams, datasheets, and standards for field reference</p>
-          </div>
-
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button className="mx-auto gap-2">
-                <Upload className="w-4 h-4" />
-                Upload Document
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Upload Document</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4 py-4">
-                <div>
-                  <label className="text-xs font-medium mb-2 block">Document Name*</label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Generator Maintenance Manual"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium mb-2 block">Category*</label>
-                  <Input
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="e.g., Manual, Datasheet, Diagram"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium mb-2 block">Description</label>
-                  <Input
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Add notes about this document"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium mb-2 block">Select File*</label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                  >
-                    <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-foreground font-medium">Click to upload file</p>
-                    <p className="text-xs text-muted-foreground">or drag and drop</p>
-                    {selectedFile && (
-                      <p className="text-xs text-primary mt-2">Selected: {selectedFile.name}</p>
-                    )}
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleAddDocument}
-                  disabled={!formData.name || !selectedFile || !formData.category}
-                >
-                  Upload
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </Card>
-    )
+  const toggleRelation = (field: "relatedEquipment" | "relatedKnowledge", id: string) => {
+    setForm((current) => ({
+      ...current,
+      [field]: current[field].includes(id)
+        ? current[field].filter((relationId) => relationId !== id)
+        : [...current[field], id],
+    }))
   }
-
-  const categories = [...new Set(documents.map((d) => d.category))]
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Documents ({documents.length})</h2>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
-              <Upload className="w-4 h-4" />
-              Upload Document
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Upload Document</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div>
-                <label className="text-xs font-medium mb-2 block">Document Name*</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Generator Maintenance Manual"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium mb-2 block">Category*</label>
-                <Input
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Manual, Datasheet, Diagram"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium mb-2 block">Description</label>
-                <Input
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Add notes about this document"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium mb-2 block">Select File*</label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                >
-                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-foreground font-medium">Click to upload file</p>
-                  <p className="text-xs text-muted-foreground">or drag and drop</p>
-                  {selectedFile && (
-                    <p className="text-xs text-primary mt-2">Selected: {selectedFile.name}</p>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddDocument}
-                disabled={!formData.name || !selectedFile || !formData.category}
-              >
-                Upload
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h2 className="text-xl font-semibold">Document Library</h2>
+          <p className="text-sm text-muted-foreground">{documents.length} browser-local documents</p>
+        </div>
+        <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Document</Button>
       </div>
 
-      {categories.map((category) => (
-        <div key={category} className="space-y-3">
-          <h3 className="font-medium text-sm text-muted-foreground">{category}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {documents
-              .filter((d) => d.category === category)
-              .map((doc) => (
-                <Card key={doc.id} className="p-4 hover:shadow-lg transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <FileText className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm truncate">{doc.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatFileSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => deleteDocument(doc.id)}
-                      className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  {doc.description && (
-                    <p className="text-xs text-foreground/80 mb-3 line-clamp-2">{doc.description}</p>
-                  )}
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs"
-                    onClick={() => {
-                      const link = document.createElement("a")
-                      link.href = doc.data
-                      link.download = doc.name
-                      link.click()
-                    }}
-                  >
-                    Download
-                  </Button>
-                </Card>
-              ))}
+      {documents.length > 0 && (
+        <div className="grid gap-3 md:grid-cols-[1fr_220px_200px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search documents, tags, equipment, or knowledge..." />
           </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger aria-label="Filter category"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={tagFilter} onValueChange={setTagFilter}>
+            <SelectTrigger aria-label="Filter tag"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tags</SelectItem>
+              {tags.map((tag) => <SelectItem key={tag} value={tag}>#{tag}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-      ))}
+      )}
+
+      {documents.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            <FileText className="h-11 w-11 text-muted-foreground" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">No documents uploaded</h3>
+              <p className="max-w-md text-sm text-muted-foreground">
+                Upload standards, diagrams, manuals, and datasheets for browser-local field reference.
+              </p>
+            </div>
+            <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Document</Button>
+          </CardContent>
+        </Card>
+      ) : filteredDocuments.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-14 text-center">
+            <Search className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
+            <h3 className="font-semibold">No matching documents</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Change the search or filters.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredDocuments.map((document) => {
+            const Icon = documentIcon(document.file.type)
+            return (
+              <Card key={document.id} className="flex flex-col transition-shadow hover:shadow-md">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Badge variant="secondary" className="mb-2">{document.category}</Badge>
+                      <CardTitle className="line-clamp-2 text-lg">{document.title}</CardTitle>
+                    </div>
+                    <div className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="h-5 w-5" /></div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col space-y-4">
+                  {document.description && <p className="line-clamp-3 text-sm text-muted-foreground">{document.description}</p>}
+                  <div className="flex flex-wrap gap-1.5">
+                    {document.tags.map((tag) => <Badge key={tag} variant="outline">#{tag}</Badge>)}
+                  </div>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p className="truncate">{document.file.name}</p>
+                    <p>{formatFileSize(document.file.size)} · {new Date(document.createdAt).toLocaleDateString()}</p>
+                    <p>{document.relatedEquipment.length} equipment · {document.relatedKnowledge.length} knowledge links</p>
+                  </div>
+                  <div className="mt-auto grid grid-cols-2 gap-2 pt-2">
+                    <Button variant="outline" onClick={() => setPreviewDocument(document)} disabled={!canPreview(document.file.type)}>
+                      <Eye className="mr-2 h-4 w-4" />{canPreview(document.file.type) ? "Preview" : "No Preview"}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <a href={document.file.dataUrl} download={document.file.name}><Download className="mr-2 h-4 w-4" />Download</a>
+                    </Button>
+                    <Button variant="ghost" onClick={() => openEdit(document)}><Edit2 className="mr-2 h-4 w-4" />Edit</Button>
+                    <Button variant="ghost" onClick={() => removeDocument(document)}><Trash2 className="mr-2 h-4 w-4 text-destructive" />Delete</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Edit Document" : "Upload Document"}</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            {!editingId && (
+              <div className="sm:col-span-2">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                >
+                  <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm font-medium">Drop a file here or click to browse</p>
+                  <p className="mt-1 text-xs text-muted-foreground">PDF, images, text, Office files, and engineering documents · 1 MB maximum</p>
+                  {selectedFile && <p className="mt-3 text-sm text-primary">{selectedFile.name} · {formatFileSize(selectedFile.size)}</p>}
+                </div>
+                <input ref={fileInputRef} type="file" className="sr-only" onChange={handleFileInput} />
+              </div>
+            )}
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-sm font-medium">Title</label>
+              <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Generator maintenance manual" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category</label>
+              <Select value={form.category} onValueChange={(value) => setForm((current) => ({ ...current, category: value }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tags</label>
+              <Input value={form.tags.join(", ")} onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }))} placeholder="generator, maintenance, IEC" />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Purpose, revision, applicability, and field notes" />
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium"><Wrench className="h-4 w-4" />Equipment relation</label>
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+                {equipment.map((item) => (
+                  <label key={item.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                    <Checkbox checked={form.relatedEquipment.includes(item.id)} onCheckedChange={() => toggleRelation("relatedEquipment", item.id)} />
+                    <span>{item.name}</span>
+                  </label>
+                ))}
+                {!equipment.length && <p className="text-xs text-muted-foreground">No equipment cataloged.</p>}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium"><Link2 className="h-4 w-4" />Knowledge relation</label>
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+                {articles.map((article) => (
+                  <label key={article.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                    <Checkbox checked={form.relatedKnowledge.includes(article.id)} onCheckedChange={() => toggleRelation("relatedKnowledge", article.id)} />
+                    <span>{article.title}</span>
+                  </label>
+                ))}
+                {!articles.length && <p className="text-xs text-muted-foreground">No knowledge articles created.</p>}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={saveDocument}>{editingId ? "Save Changes" : "Upload Document"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(previewDocument)} onOpenChange={(open) => { if (!open) setPreviewDocument(null) }}>
+        <DialogContent className="h-[90vh] max-w-5xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>{previewDocument?.title}</DialogTitle>
+          </DialogHeader>
+          {previewDocument?.file.type.startsWith("image/") ? (
+            <div className="flex h-[calc(90vh-10rem)] items-center justify-center overflow-auto rounded-lg bg-muted/40 p-4">
+              <img src={previewDocument.file.dataUrl} alt={previewDocument.title} className="max-h-full max-w-full object-contain" />
+            </div>
+          ) : previewDocument && canPreview(previewDocument.file.type) ? (
+            <iframe src={previewDocument.file.dataUrl} title={previewDocument.title} className="h-[calc(90vh-10rem)] w-full rounded-lg border" />
+          ) : null}
+          {previewDocument && (
+            <DialogFooter>
+              <Button asChild><a href={previewDocument.file.dataUrl} download={previewDocument.file.name}><Download className="mr-2 h-4 w-4" />Download</a></Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

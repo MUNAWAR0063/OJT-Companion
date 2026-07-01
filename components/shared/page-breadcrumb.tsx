@@ -18,13 +18,15 @@ const pathToLabel: Record<string, string> = {
   learning: "Learning",
   roadmap: "Learning Roadmap",
   calendar: "Weekly Goals",
-  team: "Field Notes",
+  team: "Daily Journal",
   tasks: "Knowledge Base",
   equipment: "Equipment Library",
-  documents: "Standards & Documentation",
-  gallery: "Project Gallery",
+  documents: "Documents",
+  standards: "Standards Library",
+  gallery: "Photo Gallery",
   analytics: "Competencies",
   reports: "Reports",
+  notifications: "Notification Center",
   settings: "Settings",
 }
 
@@ -43,7 +45,7 @@ export function PageBreadcrumb({ items }: PageBreadcrumbProps) {
   }
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+    <nav className="mb-6 mt-6 flex items-center gap-2 text-sm text-muted-foreground">
       <Link href="/" className="flex items-center gap-1 hover:text-foreground transition-colors">
         <Home className="w-4 h-4" />
         <span>Home</span>

@@ -1,19 +1,24 @@
 "use client"
+
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 export default function LogoutPage() {
   const router = useRouter()
+  const signOut = useAuthStore((state) => state.signOut)
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-background">
       <Sidebar />
 
-      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-64">
+      <main className="app-main-content flex-1 p-4 md:p-6 min-[1280px]:p-8">
         <Header title="Sign Out" description="End your current session." />
 
         <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
@@ -31,13 +36,21 @@ export default function LogoutPage() {
               <Button variant="outline" className="flex-1 bg-transparent" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button className="flex-1 bg-primary hover:bg-primary/90" onClick={() => router.push("/")}>
+              <Button
+                className="flex-1 bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  void signOut().then(() => router.replace("/login"))
+                }}
+              >
                 Logout
               </Button>
             </div>
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }
+
+

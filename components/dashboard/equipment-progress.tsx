@@ -1,9 +1,16 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Zap } from "lucide-react"
 import Link from "next/link"
+import { Progress } from "@/components/ui/progress"
+import { getEquipmentLibraryProgress, useEquipmentStore } from "@/lib/equipment-store"
 
 export function EquipmentProgress() {
+  const equipment = useEquipmentStore((state) => state.equipment)
+  const progress = getEquipmentLibraryProgress(equipment)
+
   return (
     <Card
       className="p-6 md:p-8 transition-all duration-500 hover:shadow-xl animate-slide-in-up"
@@ -12,13 +19,20 @@ export function EquipmentProgress() {
       <div className="space-y-6 text-center py-8">
         <Zap className="w-12 h-12 text-muted-foreground/50 mx-auto" />
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-foreground">No equipment cataloged yet</h3>
-          <p className="text-xs text-muted-foreground">Start building your equipment library to track competency progress</p>
+          <h3 className="text-sm font-semibold text-foreground">
+            {equipment.length ? `${progress}% equipment workspace progress` : "No equipment cataloged yet"}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {equipment.length
+              ? `${equipment.length} ${equipment.length === 1 ? "item" : "items"} documented in your equipment library.`
+              : "Start building your equipment library to track competency progress."}
+          </p>
         </div>
+        {equipment.length > 0 && <Progress value={progress} />}
         <Link href="/equipment">
           <Button className="h-8 text-xs gap-2 mx-auto">
             <Zap className="w-3 h-3" />
-            Add Equipment
+            {equipment.length ? "Open Equipment Library" : "Add Equipment"}
           </Button>
         </Link>
       </div>
