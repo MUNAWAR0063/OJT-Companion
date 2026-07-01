@@ -3,6 +3,7 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { supabaseStateStorage } from "@/lib/supabase/storage"
+import { mergeStoredProfile, profileForStorage } from "@/lib/user-profile-persistence.mjs"
 
 export interface UserProfile {
   fullName: string
@@ -15,6 +16,7 @@ export interface UserProfile {
   ojtBatch: string
   bio: string
   profileImage: string
+  avatarPath: string
 }
 
 interface UserProfileStore {
@@ -35,6 +37,7 @@ export const defaultUserProfile: UserProfile = {
   ojtBatch: "OADP 2026",
   bio: "",
   profileImage: "",
+  avatarPath: "",
 }
 
 export const getProfileDisplayName = (profile: UserProfile) =>
@@ -72,16 +75,16 @@ export const useUserProfileStore = create<UserProfileStore>()(
     {
       name: "ojt-user-profile",
       storage: createJSONStorage(() => supabaseStateStorage),
+      partialize: (state) => ({
+        profile: profileForStorage(state.profile),
+      }),
       merge: (persisted, current) => {
         const persistedState = persisted as Partial<UserProfileStore> | undefined
 
         return {
           ...current,
           ...persistedState,
-          profile: {
-            ...defaultUserProfile,
-            ...persistedState?.profile,
-          },
+          profile: mergeStoredProfile(defaultUserProfile, persistedState?.profile),
         }
       },
     }

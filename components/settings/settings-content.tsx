@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTheme } from "@/components/theme-provider"
 import { useSettingsStore, type AppLanguage } from "@/lib/settings-store"
 import { useUserProfileStore, type UserProfile } from "@/lib/user-profile-store"
+import { loadProfileAvatar, removeProfileAvatar, uploadProfileAvatar } from "@/lib/supabase/profile-avatar"
 import {
   exportAppState,
   getSupabaseStorageInfo,
@@ -41,8 +42,6 @@ import {
 } from "@/lib/supabase/storage"
 
 const BACKUP_KEY = "ojt-local-backups"
-const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
-const PROFILE_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
 
 interface BackupEnvelope {
   app: "OJT Companion"
@@ -142,6 +141,7 @@ export function SettingsContent() {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const profile = useUserProfileStore((state) => state.profile)
   const updateProfile = useUserProfileStore((state) => state.updateProfile)
+  const patchProfile = useUserProfileStore((state) => state.patchProfile)
   const language = useSettingsStore((state) => state.language)
   const setLanguage = useSettingsStore((state) => state.setLanguage)
   const [profileDraft, setProfileDraft] = useState<UserProfile>(profile)
@@ -155,12 +155,34 @@ export function SettingsContent() {
   })
   const [resetOpen, setResetOpen] = useState(false)
   const [resetConfirmation, setResetConfirmation] = useState("")
+  const [profileImageUploading, setProfileImageUploading] = useState(false)
   const profileImageInputRef = useRef<HTMLInputElement>(null)
   const importInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setProfileDraft(profile)
   }, [profile])
+
+  useEffect(() => {
+    let mounted = true
+
+    void loadProfileAvatar()
+      .then((avatar) => {
+        if (!mounted || !avatar) return
+        patchProfile({
+          avatarPath: avatar.avatarPath,
+          profileImage: avatar.signedUrl,
+        })
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Profile photo could not be loaded"
+        if (!message.toLowerCase().includes("logged in")) toast.error(message)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [patchProfile])
 
   const draftDisplayName = profileDraft.displayName.trim() || profileDraft.fullName
   const initials = useMemo(() => getInitials(draftDisplayName), [draftDisplayName])
@@ -235,27 +257,39 @@ export function SettingsContent() {
     event.target.value = ""
     if (!file) return
 
-    if (!PROFILE_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Use a PNG, JPG, JPEG, or WEBP image")
-      return
-    }
-
-    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
-      toast.error("Profile picture must be 5 MB or smaller")
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        const nextProfile = { ...profileDraft, profileImage: reader.result }
-        setProfileDraft(nextProfile)
-        updateProfile(nextProfile)
-        toast.success("Profile picture updated")
+    setProfileImageUploading(true)
+    try {
+      const avatar = await uploadProfileAvatar(file, profileDraft.avatarPath)
+      const nextProfile = {
+        ...profileDraft,
+        avatarPath: avatar.avatarPath,
+        profileImage: avatar.signedUrl,
       }
+      setProfileDraft(nextProfile)
+      updateProfile(nextProfile)
+      toast.success("Profile picture updated")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Profile picture could not be uploaded")
+    } finally {
+      setProfileImageUploading(false)
     }
-    reader.onerror = () => toast.error("Profile picture could not be read")
-    reader.readAsDataURL(file)
+  }
+
+  const clearProfileImage = async () => {
+    if (!profileDraft.avatarPath && !profileDraft.profileImage) return
+
+    setProfileImageUploading(true)
+    try {
+      await removeProfileAvatar(profileDraft.avatarPath)
+      const nextProfile = { ...profileDraft, avatarPath: "", profileImage: "" }
+      setProfileDraft(nextProfile)
+      updateProfile(nextProfile)
+      toast.success("Profile picture removed")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Profile picture could not be removed")
+    } finally {
+      setProfileImageUploading(false)
+    }
   }
 
   const exportBackup = async () => {
@@ -377,21 +411,27 @@ export function SettingsContent() {
                 <p className="text-sm text-muted-foreground">{profileDraft.discipline || "No discipline set"}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={() => profileImageInputRef.current?.click()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={profileImageUploading}
+                  onClick={() => profileImageInputRef.current?.click()}
+                >
                   <Camera className="mr-2 h-4 w-4" />Upload Photo
                 </Button>
-                <Button type="button" variant="outline" onClick={() => profileImageInputRef.current?.click()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={profileImageUploading}
+                  onClick={() => profileImageInputRef.current?.click()}
+                >
                   <Upload className="mr-2 h-4 w-4" />Replace
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  disabled={!profileDraft.profileImage}
-                  onClick={() => {
-                    const nextProfile = { ...profileDraft, profileImage: "" }
-                    setProfileDraft(nextProfile)
-                    updateProfile(nextProfile)
-                  }}
+                  disabled={profileImageUploading || (!profileDraft.avatarPath && !profileDraft.profileImage)}
+                  onClick={() => void clearProfileImage()}
                 >
                   <X className="mr-2 h-4 w-4" />Remove
                 </Button>

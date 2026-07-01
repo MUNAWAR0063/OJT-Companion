@@ -447,3 +447,45 @@ Creating turbopack project {
  GET /login 200 in 876ms (compile: 256ms, proxy.ts: 46ms, render: 574ms)
  ✓ Compiled in 815ms
  ✓ Compiled in 562ms
+ GET /dashboard 200 in 1006ms (compile: 237ms, proxy.ts: 651ms, render: 118ms)
+ GET /dashboard 200 in 398ms (compile: 8ms, proxy.ts: 355ms, render: 35ms)
+ GET /calendar 200 in 612ms (compile: 341ms, proxy.ts: 184ms, render: 87ms)
+ GET /learning/roadmap 200 in 1301ms (compile: 675ms, proxy.ts: 205ms, render: 421ms)
+ GET /gallery 200 in 939ms (compile: 372ms, proxy.ts: 466ms, render: 101ms)
+ GET /gallery 200 in 1783ms (compile: 8ms, proxy.ts: 1010ms, render: 765ms)
+ ✓ Compiled in 785ms
+ ✓ Compiled in 1150ms
+ GET /login?next=%2Fgallery 200 in 1582ms (compile: 493ms, proxy.ts: 185ms, render: 905ms)
+ GET /login?next=%2Fdashboard 200 in 295ms (compile: 12ms, proxy.ts: 182ms, render: 101ms)
+ ✓ Compiled in 3.7s
+ GET /login?next=%2Fdashboard 200 in 1650ms (compile: 680ms, proxy.ts: 579ms, render: 391ms)
+ GET /login?next=%2Fdashboard 200 in 1201ms (compile: 14ms, proxy.ts: 369ms, render: 818ms)
+ GET /login?next=%2Fdashboard 200 in 436ms (compile: 13ms, proxy.ts: 362ms, render: 61ms)
+ ✓ Compiled in 355ms
+ ✓ Compiled in 491ms
+ ✓ Compiled in 804ms
+ ✓ Compiled in 470ms
+ GET /login?next=%2Fdashboard 200 in 798ms (compile: 249ms, proxy.ts: 9ms, render: 541ms)
+ GET /dashboard 200 in 675ms (compile: 266ms, proxy.ts: 249ms, render: 160ms)
+ GET /dashboard 200 in 416ms (compile: 7ms, proxy.ts: 364ms, render: 45ms)
+ GET /settings 200 in 1369ms (compile: 1012ms, proxy.ts: 172ms, render: 185ms)
+ GET /settings 200 in 964ms (compile: 32ms, proxy.ts: 233ms, render: 699ms)
+ GET /dashboard 200 in 454ms (compile: 17ms, proxy.ts: 375ms, render: 62ms)
+ GET /calendar 200 in 574ms (compile: 272ms, proxy.ts: 150ms, render: 152ms)
+ GET /logout 200 in 1198ms (compile: 324ms, proxy.ts: 443ms, render: 431ms)
+ GET /login?next=%2Flogout 200 in 260ms (compile: 13ms, proxy.ts: 14ms, render: 233ms)
+ GET /login 200 in 209ms (compile: 14ms, proxy.ts: 20ms, render: 175ms)
+ GET /dashboard 200 in 284ms (compile: 9ms, proxy.ts: 226ms, render: 49ms)
+ GET /dashboard 200 in 204ms (compile: 10ms, proxy.ts: 149ms, render: 46ms)
+ GET /logout 200 in 264ms (compile: 8ms, proxy.ts: 217ms, render: 40ms)
+ GET /login?next=%2Flogout 200 in 384ms (compile: 11ms, proxy.ts: 7ms, render: 366ms)
+ GET /login 200 in 823ms (compile: 11ms, proxy.ts: 10ms, render: 801ms)
+ GET /forgot-password 200 in 832ms (compile: 730ms, proxy.ts: 7ms, render: 95ms)
+ GET /login 200 in 76ms (compile: 8ms, proxy.ts: 5ms, render: 63ms)
+ GET /forgot-password 200 in 110ms (compile: 13ms, proxy.ts: 16ms, render: 81ms)
+ GET /login 200 in 168ms (compile: 11ms, proxy.ts: 8ms, render: 149ms)
+ GET /forgot-password 200 in 66ms (compile: 8ms, proxy.ts: 6ms, render: 53ms)
+ ✓ Compiled in 2.2s
+ GET /forgot-password 200 in 432ms (compile: 226ms, proxy.ts: 94ms, render: 112ms)
+ GET /forgot-password 200 in 128ms (compile: 10ms, proxy.ts: 8ms, render: 110ms)
+ GET /forgot-password 200 in 810ms (compile: 574ms, proxy.ts: 29ms, render: 207ms)

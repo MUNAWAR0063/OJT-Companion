@@ -14,6 +14,7 @@ export interface AuthProfile {
   ojtBatch: string
   bio: string
   profileImage: string
+  avatarPath: string
   currentSite: string
   homeBase: string
 }
@@ -82,6 +83,7 @@ export const defaultAuthProfile: AuthProfile = {
   ojtBatch: "OADP 2026",
   bio: "",
   profileImage: "",
+  avatarPath: "",
   currentSite: "",
   homeBase: "",
 }

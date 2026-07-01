@@ -43,7 +43,9 @@ const plannerState = {
 test("maps existing persist keys to user_module_data modules", () => {
   assert.equal(moduleForStorageKey("ojt-weekly-planner"), "weekly_planner")
   assert.equal(moduleForStorageKey("ojt-daily-journal"), "daily_journal")
+  assert.equal(moduleForStorageKey("ojt-user-profile"), "profile")
   assert.equal(storageKeyForModule("knowledge_base"), "ojt-knowledge-base")
+  assert.equal(storageKeyForModule("profile"), "ojt-user-profile")
 })
 
 test("stores non-weekly modules as one default scoped row", () => {
@@ -52,6 +54,23 @@ test("stores non-weekly modules as one default scoped row", () => {
   assert.equal(rows.length, 1)
   assert.equal(rows[0].module, "knowledge_base")
   assert.equal(rows[0].scope_key, DEFAULT_SCOPE_KEY)
+})
+
+test("stores profile avatar path at the profile row top level", () => {
+  const rows = rowsForPersistedState("ojt-user-profile", {
+    state: {
+      profile: {
+        fullName: "OJT Trainee",
+        profileImage: "",
+        avatarPath: "user-123/profile/avatar-1720000000000.png",
+      },
+    },
+    version: 0,
+  })
+
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].module, "profile")
+  assert.equal(rows[0].data.avatar_path, "user-123/profile/avatar-1720000000000.png")
 })
 
 test("stores weekly planner by module and week-based scope keys", () => {

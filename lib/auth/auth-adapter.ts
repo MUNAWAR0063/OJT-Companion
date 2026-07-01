@@ -91,7 +91,8 @@ function metadataProfile(email: string, metadata: Record<string, unknown>): Auth
     program: typeof metadata.program === "string" ? metadata.program : defaultAuthProfile.program,
     ojtBatch: typeof metadata.ojtBatch === "string" ? metadata.ojtBatch : defaultAuthProfile.ojtBatch,
     bio: typeof metadata.bio === "string" ? metadata.bio : "",
-    profileImage: typeof metadata.profileImage === "string" ? metadata.profileImage : "",
+    profileImage: "",
+    avatarPath: typeof metadata.avatarPath === "string" ? metadata.avatarPath : "",
     currentSite: typeof metadata.currentSite === "string" ? metadata.currentSite : "",
     homeBase: typeof metadata.homeBase === "string" ? metadata.homeBase : "",
   }

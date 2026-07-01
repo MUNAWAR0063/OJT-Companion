@@ -3,11 +3,14 @@ import test from "node:test"
 import {
   DOCUMENTS_MODULE,
   PHOTO_GALLERY_MODULE,
+  PROFILE_MODULE,
   validateModuleFile,
   userFilePath,
+  profileAvatarPath,
   safeFileName,
   PHOTO_MAX_BYTES,
   DOCUMENT_MAX_BYTES,
+  PROFILE_AVATAR_MAX_BYTES,
 } from "../lib/supabase/file-validation.mjs"
 
 test("creates user-scoped Supabase Storage paths with safe file names", () => {
@@ -93,6 +96,50 @@ test("enforces documents size limit", () => {
       fileName: "report.pdf",
       mimeType: "application/pdf",
       sizeBytes: DOCUMENT_MAX_BYTES + 1,
+    }).ok,
+    false
+  )
+})
+
+test("creates stable user-scoped profile avatar paths", () => {
+  assert.equal(
+    profileAvatarPath({
+      userId: "user-123",
+      timestamp: 1720000000000,
+      fileName: "My Avatar.png",
+    }),
+    "user-123/profile/avatar-1720000000000.png"
+  )
+})
+
+test("allows only jpg, png, and webp profile avatars", () => {
+  assert.equal(
+    validateModuleFile({
+      module: PROFILE_MODULE,
+      fileName: "avatar.webp",
+      mimeType: "image/webp",
+      sizeBytes: 1000,
+    }).ok,
+    true
+  )
+  assert.equal(
+    validateModuleFile({
+      module: PROFILE_MODULE,
+      fileName: "avatar.gif",
+      mimeType: "image/gif",
+      sizeBytes: 1000,
+    }).ok,
+    false
+  )
+})
+
+test("enforces profile avatar size limit", () => {
+  assert.equal(
+    validateModuleFile({
+      module: PROFILE_MODULE,
+      fileName: "avatar.jpg",
+      mimeType: "image/jpeg",
+      sizeBytes: PROFILE_AVATAR_MAX_BYTES + 1,
     }).ok,
     false
   )
