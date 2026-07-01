@@ -26,6 +26,16 @@ function seedUserProfile(profile: AuthProfile) {
   }
 }
 
+function readableError(error: unknown) {
+  if (error instanceof Error) return error
+  if (typeof error === "string") return new Error(error)
+  try {
+    return new Error(JSON.stringify(error))
+  } catch {
+    return new Error(String(error))
+  }
+}
+
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   profile: null,
@@ -51,17 +61,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   restoreSession: async () => {
     set({ isRestoring: true })
-    const result = await authAdapter.getSession()
-    if (result?.session) {
-      seedUserProfile(result.profile)
-      set({
-        user: result.user,
-        profile: result.profile,
-        session: result.session,
-        status: "authenticated",
-        isRestoring: false,
-      })
-      return
+    try {
+      const result = await authAdapter.getSession()
+      if (result?.session) {
+        seedUserProfile(result.profile)
+        set({
+          user: result.user,
+          profile: result.profile,
+          session: result.session,
+          status: "authenticated",
+          isRestoring: false,
+        })
+        return
+      }
+    } catch (error) {
+      console.error("Session restore failed", readableError(error))
     }
 
     set({

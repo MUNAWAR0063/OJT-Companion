@@ -39,7 +39,7 @@ export default function LogoutPage() {
               <Button
                 className="flex-1 bg-primary hover:bg-primary/90"
                 onClick={() => {
-                  void signOut().then(() => router.replace("/login"))
+                  void signOut().then(() => window.location.replace("/login"))
                 }}
               >
                 Logout

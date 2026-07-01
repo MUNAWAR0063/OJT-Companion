@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { ensureSupabaseSession, supabaseStateStorage } from "@/lib/supabase/storage"
+import { supabaseStateStorage } from "@/lib/supabase/storage"
 
 type Theme = "light" | "dark" | "system"
 type ResolvedTheme = "light" | "dark"
@@ -63,7 +63,6 @@ export function ThemeProvider({
 
     async function hydrateTheme() {
       try {
-        await ensureSupabaseSession()
         const persistedTheme = await readPersistedTheme(storageKey)
         if (active && persistedTheme) setThemeState(persistedTheme)
       } catch (error) {

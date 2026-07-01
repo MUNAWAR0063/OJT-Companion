@@ -3,6 +3,7 @@
 import { isSupabaseConfigured, supabase } from "@/lib/supabase/client"
 import type { AuthProfile, AuthSession, AuthUser, CreateProfileInput, SignInInput, SignUpInput } from "@/lib/auth/auth-types"
 import { defaultAuthProfile } from "@/lib/auth/auth-types"
+import { clearLocalAuthSession, getStoredLocalAuthSession, saveLocalAuthSession } from "@/lib/auth/local-auth-session.mjs"
 
 export interface AuthResult {
   user: AuthUser
@@ -140,7 +141,9 @@ export const authAdapter = {
 
   async signIn(input: SignInInput): Promise<AuthResult> {
     if (!isSupabaseConfigured || !supabase) {
-      return createLocalAuthResult(input.email, input.remember)
+      const result = createLocalAuthResult(input.email, input.remember)
+      saveLocalAuthSession(result)
+      return result
     }
 
     const client = ensureAuthBackend()
@@ -166,7 +169,7 @@ export const authAdapter = {
   },
 
   async getSession(): Promise<AuthResult | null> {
-    if (!isSupabaseConfigured || !supabase) return null
+    if (!isSupabaseConfigured || !supabase) return getStoredLocalAuthSession() as AuthResult | null
     const { data } = await supabase.auth.getSession()
     if (!data.session?.user) return null
 
@@ -196,6 +199,7 @@ export const authAdapter = {
   },
 
   async signOut() {
+    clearLocalAuthSession()
     if (supabase) await supabase.auth.signOut()
   },
 

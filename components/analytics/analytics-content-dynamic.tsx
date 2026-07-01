@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   BarChart3,
   BookOpen,
@@ -34,6 +34,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useWorkspaceProgress, type CompetencyStatus, type WorkspaceCompetency } from "@/lib/workspace-progress"
+import {
+  COMPETENCY_PAGE_SIZE,
+  filterCompetencies,
+  formatCompetencyDate,
+  getVisibleCompetencies,
+} from "@/lib/competencies-utils.mjs"
 
 const statusLabels: Record<CompetencyStatus, string> = {
   completed: "Completed",
@@ -45,11 +51,6 @@ const statusClasses: Record<CompetencyStatus, string> = {
   completed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   "in-progress": "border-primary/30 bg-primary/10 text-primary",
   "not-started": "border-muted-foreground/20 bg-muted text-muted-foreground",
-}
-
-function formatDate(date: string | null) {
-  if (!date) return "No updates yet"
-  return new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
 }
 
 function MetricCard({
@@ -140,7 +141,7 @@ function CompetencyDetail({ competency }: { competency: WorkspaceCompetency }) {
                 <div>
                   <p className="font-medium">{event.label}</p>
                   <p className="text-muted-foreground">{event.detail}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(event.date)}</p>
+                  <p className="text-xs text-muted-foreground">{formatCompetencyDate(event.date)}</p>
                 </div>
               </div>
             ))}
@@ -158,6 +159,8 @@ export function AnalyticsContentDynamic() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("all")
   const [status, setStatus] = useState("all")
+  const [sort, setSort] = useState("updated-desc")
+  const [page, setPage] = useState(1)
   const [selectedCompetency, setSelectedCompetency] = useState<WorkspaceCompetency | null>(null)
 
   const categories = useMemo(
@@ -165,19 +168,25 @@ export function AnalyticsContentDynamic() {
     [summary.competencies]
   )
 
-  const filteredCompetencies = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
-    return summary.competencies.filter((competency) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        competency.title.toLowerCase().includes(normalizedQuery) ||
-        competency.category.toLowerCase().includes(normalizedQuery) ||
-        competency.description.toLowerCase().includes(normalizedQuery)
-      const matchesCategory = category === "all" || competency.category === category
-      const matchesStatus = status === "all" || competency.status === status
-      return matchesQuery && matchesCategory && matchesStatus
+  const visibleCompetencies = useMemo(
+    () => getVisibleCompetencies(summary.competencies, { query, category, status }, sort, page, COMPETENCY_PAGE_SIZE),
+    [category, page, query, sort, status, summary.competencies]
+  )
+  const filteredCompetencies = visibleCompetencies.filtered as WorkspaceCompetency[]
+  const pagedCompetencies = visibleCompetencies.pagination.items as WorkspaceCompetency[]
+  const pagination = visibleCompetencies.pagination
+  const hasActiveFilters = Boolean(query.trim()) || category !== "all" || status !== "all"
+
+  useEffect(() => {
+    setPage(1)
+  }, [category, query, sort, status])
+
+  useEffect(() => {
+    setSelectedCompetency((current) => {
+      if (!current) return null
+      return summary.competencies.find((competency) => competency.id === current.id) ?? null
     })
-  }, [category, query, status, summary.competencies])
+  }, [summary.competencies])
 
   if (!summary.hasData) {
     return (
@@ -236,7 +245,7 @@ export function AnalyticsContentDynamic() {
       </div>
 
       <Card className="p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -269,11 +278,44 @@ export function AnalyticsContentDynamic() {
               <SelectItem value="not-started">Not Started</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={sort} onValueChange={setSort}>
+            <SelectTrigger className="w-full" aria-label="Sort competencies">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updated-desc">Recently Updated</SelectItem>
+              <SelectItem value="progress-desc">Highest Progress</SelectItem>
+              <SelectItem value="progress-asc">Lowest Progress</SelectItem>
+              <SelectItem value="title-asc">Title A-Z</SelectItem>
+              <SelectItem value="status-asc">Status</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span>
+            Showing {filteredCompetencies.length ? (pagination.page - 1) * pagination.pageSize + 1 : 0}-
+            {Math.min(pagination.page * pagination.pageSize, filteredCompetencies.length)} of {filteredCompetencies.length}
+          </span>
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQuery("")
+                setCategory("all")
+                setStatus("all")
+              }}
+            >
+              Clear filters
+            </Button>
+          ) : null}
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filteredCompetencies.map((competency) => (
+      {filteredCompetencies.length ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {pagedCompetencies.map((competency) => (
           <Card key={competency.id} className="flex min-h-[260px] flex-col p-5 transition-shadow hover:shadow-md">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -292,14 +334,59 @@ export function AnalyticsContentDynamic() {
             </div>
             <div className="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
               <span>{competency.recordCount} source {competency.recordCount === 1 ? "record" : "records"}</span>
-              <span>Updated {formatDate(competency.lastUpdated)}</span>
+              <span>Updated {formatCompetencyDate(competency.lastUpdated)}</span>
             </div>
             <Button className="mt-auto" variant="outline" onClick={() => setSelectedCompetency(competency)}>
               View Detail
             </Button>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <Card className="p-8 text-center">
+          <Search className="mx-auto h-10 w-10 text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-semibold">No competencies match your filters</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Adjust the search, category, or status filters to see matching competency records.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-5"
+            onClick={() => {
+              setQuery("")
+              setCategory("all")
+              setStatus("all")
+            }}
+          >
+            Reset filters
+          </Button>
+        </Card>
+      )}
+
+      {pagination.pageCount > 1 ? (
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pagination.page <= 1}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {pagination.page} of {pagination.pageCount}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pagination.page >= pagination.pageCount}
+            onClick={() => setPage((current) => Math.min(pagination.pageCount, current + 1))}
+          >
+            Next
+          </Button>
+        </div>
+      ) : null}
 
       <Dialog open={Boolean(selectedCompetency)} onOpenChange={(open) => !open && setSelectedCompetency(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
@@ -308,7 +395,7 @@ export function AnalyticsContentDynamic() {
               <DialogHeader>
                 <DialogTitle>{selectedCompetency.title}</DialogTitle>
                 <DialogDescription>
-                  Last updated {formatDate(selectedCompetency.lastUpdated)}
+                  Last updated {formatCompetencyDate(selectedCompetency.lastUpdated)}
                 </DialogDescription>
               </DialogHeader>
               <CompetencyDetail competency={selectedCompetency} />

@@ -15,6 +15,7 @@ import { useSettingsStore } from "@/lib/settings-store"
 import { useStandardsStore } from "@/lib/standards-store"
 import { subscribeToAppStateChanges } from "@/lib/supabase/storage"
 import { supabase } from "@/lib/supabase/client"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 type PersistedStore = {
   persist: {
@@ -44,27 +45,43 @@ async function rehydrateStores(keys = Object.keys(persistedStores)) {
 export function SupabaseRuntime() {
   useEffect(() => {
     let active = true
+    let hasRealtimeSubscription = false
     let unsubscribe: () => void = () => undefined
 
-    async function start() {
+    async function startRealtimeSubscription() {
+      if (!supabase || hasRealtimeSubscription) return
+      hasRealtimeSubscription = true
+      unsubscribe = await subscribeToAppStateChanges((storageKey) => {
+        void rehydrateStores([storageKey])
+      })
+    }
+
+    async function loadUserData() {
       try {
-        if (!supabase) return
-        const { data } = await supabase.auth.getSession()
-        if (!data.session) return
         if (!active) return
         await rehydrateStores()
-        unsubscribe = await subscribeToAppStateChanges((storageKey) => {
-          void rehydrateStores([storageKey])
-        })
+        await startRealtimeSubscription()
       } catch (error) {
         console.error("Supabase data source failed to initialize", error)
       }
     }
 
-    void start()
+    const authState = useAuthStore.getState()
+    if (!authState.isRestoring && authState.status === "authenticated") void loadUserData()
+
+    const unsubscribeAuth = useAuthStore.subscribe((state, previousState) => {
+      if (
+        state.status === "authenticated" &&
+        !state.isRestoring &&
+        (previousState.status !== "authenticated" || previousState.isRestoring)
+      ) {
+        void loadUserData()
+      }
+    })
 
     return () => {
       active = false
+      unsubscribeAuth()
       unsubscribe()
     }
   }, [])

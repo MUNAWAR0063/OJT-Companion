@@ -27,6 +27,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSidebarState } from "@/lib/sidebar-state"
+import { ThemedLogo } from "@/components/ThemedLogo"
 
 type NavLeaf = {
   icon: typeof LayoutDashboard
@@ -71,7 +72,7 @@ const navEntries: NavEntry[] = [
     icon: BarChart3,
     label: "Progress",
     children: [
-      { icon: TrendingUp, label: "Competency", href: "/analytics" },
+      { icon: TrendingUp, label: "Competency", href: "/competencies" },
       { icon: FileBarChart, label: "Reports", href: "/reports" },
     ],
   },
@@ -144,17 +145,17 @@ export function Sidebar({ variant = "responsive", onNavigate }: SidebarProps) {
           href="/dashboard"
           onClick={onNavigate}
           className={cn(
-            "group flex min-w-0 flex-1 items-center rounded-lg bg-white transition-colors hover:bg-white/95",
+            "group flex min-w-0 flex-1 items-center rounded-lg transition-colors hover:bg-secondary/60",
             isExpanded ? "justify-start gap-3 p-4" : "h-12 justify-center p-2"
           )}
           aria-label="Go to dashboard"
         >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white transition-transform duration-300 group-hover:scale-105">
-            <img src="/logo.png" alt="OJT Companion logo" className="h-full w-full object-contain" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105">
+            <ThemedLogo alt="OJT Companion logo" className="h-full w-full" />
           </div>
           <div className={cn("flex flex-col leading-tight", labelClassName)}>
-            <span className="truncate text-sm font-semibold text-slate-950">OJT Companion</span>
-            <span className="truncate text-xs text-slate-600">OADP 2026</span>
+            <span className="truncate text-sm font-semibold text-foreground">OJT Companion</span>
+            <span className="truncate text-xs text-muted-foreground">OADP 2026</span>
           </div>
         </Link>
         {canCollapse && (
