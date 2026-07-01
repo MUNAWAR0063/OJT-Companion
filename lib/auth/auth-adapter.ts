@@ -1,9 +1,10 @@
 "use client"
 
-import { isSupabaseConfigured, supabase } from "@/lib/supabase/client"
+import { isLocalAuthFallbackEnabled, isSupabaseConfigured, supabase } from "@/lib/supabase/client"
 import type { AuthProfile, AuthSession, AuthUser, CreateProfileInput, SignInInput, SignUpInput } from "@/lib/auth/auth-types"
 import { defaultAuthProfile } from "@/lib/auth/auth-types"
 import { clearLocalAuthSession, getStoredLocalAuthSession, saveLocalAuthSession } from "@/lib/auth/local-auth-session.mjs"
+import { clearSupabaseSessionCookie, setSupabaseSessionCookie } from "@/lib/auth/session-cookie.mjs"
 
 export interface AuthResult {
   user: AuthUser
@@ -105,7 +106,7 @@ function ensureAuthBackend() {
 
 export const authAdapter = {
   async signUp(input: SignUpInput): Promise<AuthResult> {
-    if (!isSupabaseConfigured || !supabase) {
+    if (isLocalAuthFallbackEnabled) {
       const profile = createProfile(input)
       const userId = `local-${profile.email}`
       return {
@@ -131,6 +132,7 @@ export const authAdapter = {
 
     if (error) throw error
     if (!data.user) throw new Error("Account could not be created")
+    if (data.session) setSupabaseSessionCookie(data.session)
 
     return {
       user: mapUser(data.user.id, profile.email, Boolean(data.user.email_confirmed_at), false),
@@ -140,7 +142,7 @@ export const authAdapter = {
   },
 
   async signIn(input: SignInInput): Promise<AuthResult> {
-    if (!isSupabaseConfigured || !supabase) {
+    if (isLocalAuthFallbackEnabled) {
       const result = createLocalAuthResult(input.email, input.remember)
       saveLocalAuthSession(result)
       return result
@@ -154,6 +156,7 @@ export const authAdapter = {
 
     if (error) throw error
     if (!data.user || !data.session) throw new Error("Account not found")
+    setSupabaseSessionCookie(data.session)
 
     const profile = metadataProfile(data.user.email ?? input.email, data.user.user_metadata)
     return {
@@ -169,9 +172,11 @@ export const authAdapter = {
   },
 
   async getSession(): Promise<AuthResult | null> {
-    if (!isSupabaseConfigured || !supabase) return getStoredLocalAuthSession() as AuthResult | null
+    if (isLocalAuthFallbackEnabled) return getStoredLocalAuthSession() as AuthResult | null
+    if (!isSupabaseConfigured || !supabase) return null
     const { data } = await supabase.auth.getSession()
     if (!data.session?.user) return null
+    setSupabaseSessionCookie(data.session)
 
     const user = data.session.user
     if ((user as { is_anonymous?: boolean }).is_anonymous) return null
@@ -200,6 +205,7 @@ export const authAdapter = {
 
   async signOut() {
     clearLocalAuthSession()
+    clearSupabaseSessionCookie()
     if (supabase) await supabase.auth.signOut()
   },
 

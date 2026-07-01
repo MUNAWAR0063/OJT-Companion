@@ -392,3 +392,14 @@ Creating turbopack project {
  GET / 200 in 539ms (compile: 363ms, render: 177ms)
  GET /dashboard 200 in 379ms (compile: 291ms, render: 88ms)
  GET /competencies 200 in 714ms (compile: 630ms, render: 84ms)
+ ✓ Compiled in 846ms
+ GET /dashboard 200 in 796ms (compile: 534ms, render: 262ms)
+ ✓ Compiled in 447ms
+ GET /dashboard 200 in 800ms (compile: 254ms, render: 546ms)
+ ✓ Compiled in 2.2s
+ GET /dashboard 200 in 1020ms (compile: 276ms, render: 744ms)
+ ✓ Compiled in 675ms
+ GET /dashboard 200 in 873ms (compile: 365ms, render: 509ms)
+ ✓ Compiled in 350ms
+ ✓ Compiled in 463ms
+ ✓ Compiled in 1539ms

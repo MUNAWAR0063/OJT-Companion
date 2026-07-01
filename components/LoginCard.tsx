@@ -46,8 +46,6 @@ export function LoginCard() {
       return
     }
 
-    console.log({ email, password, rememberMe })
-
     setLoading(true)
     try {
       await signIn({ email, password, remember: rememberMe })

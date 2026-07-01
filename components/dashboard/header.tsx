@@ -46,7 +46,7 @@ export function Header({ title, description, actions }: HeaderProps) {
           </div>
           <div className="min-w-0 space-y-3">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
-            <p className="text-sm md:text-base leading-relaxed text-muted-foreground reading-width">{description}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground reading-width md:text-base">{description}</p>
           </div>
         </div>
 

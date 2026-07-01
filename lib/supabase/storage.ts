@@ -1,7 +1,7 @@
 "use client"
 
 import type { StateStorage } from "zustand/middleware"
-import { supabase } from "@/lib/supabase/client"
+import { isLocalAuthFallbackEnabled, supabase } from "@/lib/supabase/client"
 import { getStoredLocalAuthSession } from "@/lib/auth/local-auth-session.mjs"
 
 const BUCKET = "ojt-attachments"
@@ -155,11 +155,12 @@ async function writeState(name: string, value: string) {
 
 export const supabaseStateStorage: StateStorage = {
   getItem: async (name) => {
-    if (!supabase) {
+    if (!supabase && isLocalAuthFallbackEnabled) {
       const ownerId = localOwnerId()
       const storage = localStorageAvailable()
       return ownerId && storage ? storage.getItem(localStateKey(ownerId, name)) : null
     }
+    if (!supabase) return null
     const ownerId = await userId()
     if (!ownerId) return null
     const { data, error } = await supabase
@@ -174,7 +175,7 @@ export const supabaseStateStorage: StateStorage = {
   },
 
   setItem: async (name, value) => {
-    if (!supabase) {
+    if (!supabase && isLocalAuthFallbackEnabled) {
       const ownerId = localOwnerId()
       const storage = localStorageAvailable()
       try {
@@ -184,6 +185,7 @@ export const supabaseStateStorage: StateStorage = {
       }
       return
     }
+    if (!supabase) return
     const previous = writeQueues.get(name) ?? Promise.resolve()
     const next = previous.catch(() => undefined).then(() => writeState(name, value))
     writeQueues.set(name, next)
@@ -197,12 +199,13 @@ export const supabaseStateStorage: StateStorage = {
   },
 
   removeItem: async (name) => {
-    if (!supabase) {
+    if (!supabase && isLocalAuthFallbackEnabled) {
       const ownerId = localOwnerId()
       const storage = localStorageAvailable()
       if (ownerId && storage) storage.removeItem(localStateKey(ownerId, name))
       return
     }
+    if (!supabase) return
     const ownerId = await userId()
     if (!ownerId) return
     const { data } = await supabase
@@ -223,7 +226,7 @@ export const supabaseStateStorage: StateStorage = {
 }
 
 export async function fetchAppStateRecords() {
-  if (!supabase) {
+  if (!supabase && isLocalAuthFallbackEnabled) {
     const ownerId = localOwnerId()
     const storage = localStorageAvailable()
     if (!ownerId || !storage) return []
@@ -236,6 +239,7 @@ export async function fetchAppStateRecords() {
         updated_at: new Date().toISOString(),
       }))
   }
+  if (!supabase) return []
   const ownerId = await userId()
   if (!ownerId) return []
   const { data, error } = await supabase
@@ -264,7 +268,7 @@ export async function exportAppState(excludedKeys: string[] = []) {
 }
 
 export async function replaceAppState(data: Record<string, string>) {
-  if (!supabase) {
+  if (!supabase && isLocalAuthFallbackEnabled) {
     const ownerId = localOwnerId()
     const storage = localStorageAvailable()
     if (!ownerId || !storage) return
@@ -277,6 +281,7 @@ export async function replaceAppState(data: Record<string, string>) {
     })
     return
   }
+  if (!supabase) return
   const ownerId = await userId()
   if (!ownerId) return
   const previous = await fetchAppStateRecords()
@@ -307,7 +312,7 @@ export async function replaceAppState(data: Record<string, string>) {
 }
 
 export async function resetAppState() {
-  if (!supabase) {
+  if (!supabase && isLocalAuthFallbackEnabled) {
     const ownerId = localOwnerId()
     const storage = localStorageAvailable()
     if (!ownerId || !storage) return
@@ -317,6 +322,7 @@ export async function resetAppState() {
       .forEach((key) => storage.removeItem(key))
     return
   }
+  if (!supabase) return
   const ownerId = await userId()
   if (!ownerId) return
   const previous = await fetchAppStateRecords()
