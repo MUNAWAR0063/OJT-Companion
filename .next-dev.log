@@ -389,3 +389,6 @@ Creating turbopack project {
  ✓ Compiled in 1021ms
  ✓ Compiled in 520ms
  ✓ Compiled in 1332ms
+ GET / 200 in 539ms (compile: 363ms, render: 177ms)
+ GET /dashboard 200 in 379ms (compile: 291ms, render: 88ms)
+ GET /competencies 200 in 714ms (compile: 630ms, render: 84ms)
