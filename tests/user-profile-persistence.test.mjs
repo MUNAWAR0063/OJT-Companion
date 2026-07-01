@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { mergeStoredProfile, profileForStorage } from "../lib/user-profile-persistence.mjs"
+import { avatarPathFromProfileData } from "../lib/supabase/profile-avatar-data.mjs"
 
 const defaultProfile = {
   fullName: "OJT Trainee",
@@ -37,4 +38,31 @@ test("does not restore stale signed or object URLs as profile images", () => {
   assert.equal(merged.displayName, "Trainee")
   assert.equal(merged.profileImage, "")
   assert.equal(merged.avatarPath, "user-123/profile/avatar-1720000000000.png")
+})
+
+test("loads the persisted database avatar path as the primary avatar source", () => {
+  assert.equal(
+    avatarPathFromProfileData({
+      avatar_path: "user-123/profile/avatar-current.png",
+      state: {
+        profile: {
+          avatarPath: "user-123/profile/avatar-old.png",
+        },
+      },
+    }),
+    "user-123/profile/avatar-current.png"
+  )
+})
+
+test("supports avatar paths saved before the avatar_path field was added", () => {
+  assert.equal(
+    avatarPathFromProfileData({
+      state: {
+        profile: {
+          avatarPath: "user-123/profile/avatar-legacy.png",
+        },
+      },
+    }),
+    "user-123/profile/avatar-legacy.png"
+  )
 })

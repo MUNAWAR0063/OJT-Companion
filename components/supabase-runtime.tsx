@@ -13,9 +13,11 @@ import { useRoadmapStore } from "@/lib/roadmap-store"
 import { useSearchStore } from "@/lib/search-store"
 import { useSettingsStore } from "@/lib/settings-store"
 import { useStandardsStore } from "@/lib/standards-store"
-import { subscribeToAppStateChanges } from "@/lib/supabase/storage"
+import { subscribeToAppStateChanges, supabaseStateStorage } from "@/lib/supabase/storage"
 import { supabase } from "@/lib/supabase/client"
 import { useAuthStore } from "@/lib/auth/auth-store"
+import { loadProfileAvatar } from "@/lib/supabase/profile-avatar"
+import { useUserProfileStore } from "@/lib/user-profile-store"
 
 type PersistedStore = {
   persist: {
@@ -36,10 +38,33 @@ const persistedStores: Record<string, PersistedStore> = {
   "ojt-recent-searches": useSearchStore,
   "ojt-settings": useSettingsStore,
   "ojt-standards-library": useStandardsStore,
+  "ojt-user-profile": useUserProfileStore,
 }
+
+const USER_PROFILE_STORAGE_KEY = "ojt-user-profile"
 
 async function rehydrateStores(keys = Object.keys(persistedStores)) {
   await Promise.all(keys.map((key) => persistedStores[key]?.persist.rehydrate()))
+}
+
+async function refreshProfileAvatar() {
+  if (!supabase) return
+
+  const avatar = await loadProfileAvatar()
+  const current = useUserProfileStore.getState().profile
+
+  if (!avatar) {
+    if (current.avatarPath || current.profileImage) {
+      useUserProfileStore.getState().patchProfile({ avatarPath: "", profileImage: "" })
+    }
+    return
+  }
+
+  if (current.avatarPath === avatar.avatarPath && current.profileImage) return
+  useUserProfileStore.getState().patchProfile({
+    avatarPath: avatar.avatarPath,
+    profileImage: avatar.signedUrl,
+  })
 }
 
 export function SupabaseRuntime() {
@@ -52,6 +77,12 @@ export function SupabaseRuntime() {
       if (!supabase || hasRealtimeSubscription) return
       hasRealtimeSubscription = true
       unsubscribe = await subscribeToAppStateChanges((storageKey) => {
+        if (storageKey === USER_PROFILE_STORAGE_KEY) {
+          void refreshProfileAvatar().catch((error) => {
+            console.error("Profile photo refresh failed", error)
+          })
+          return
+        }
         void rehydrateStores([storageKey])
       })
     }
@@ -59,7 +90,17 @@ export function SupabaseRuntime() {
     async function loadUserData() {
       try {
         if (!active) return
+        const storedProfile = await supabaseStateStorage.getItem(USER_PROFILE_STORAGE_KEY)
         await rehydrateStores()
+        if (!storedProfile) {
+          const authProfile = useAuthStore.getState().profile
+          if (authProfile) useUserProfileStore.getState().updateProfile(authProfile)
+        }
+        try {
+          await refreshProfileAvatar()
+        } catch (error) {
+          console.error("Profile photo refresh failed", error)
+        }
         await startRealtimeSubscription()
       } catch (error) {
         console.error("Supabase data source failed to initialize", error)

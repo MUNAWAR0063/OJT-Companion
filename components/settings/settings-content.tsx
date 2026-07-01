@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTheme } from "@/components/theme-provider"
 import { useSettingsStore, type AppLanguage } from "@/lib/settings-store"
 import { useUserProfileStore, type UserProfile } from "@/lib/user-profile-store"
-import { loadProfileAvatar, removeProfileAvatar, uploadProfileAvatar } from "@/lib/supabase/profile-avatar"
+import { removeProfileAvatar, uploadProfileAvatar } from "@/lib/supabase/profile-avatar"
 import {
   exportAppState,
   getSupabaseStorageInfo,
@@ -141,7 +141,6 @@ export function SettingsContent() {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const profile = useUserProfileStore((state) => state.profile)
   const updateProfile = useUserProfileStore((state) => state.updateProfile)
-  const patchProfile = useUserProfileStore((state) => state.patchProfile)
   const language = useSettingsStore((state) => state.language)
   const setLanguage = useSettingsStore((state) => state.setLanguage)
   const [profileDraft, setProfileDraft] = useState<UserProfile>(profile)
@@ -162,27 +161,6 @@ export function SettingsContent() {
   useEffect(() => {
     setProfileDraft(profile)
   }, [profile])
-
-  useEffect(() => {
-    let mounted = true
-
-    void loadProfileAvatar()
-      .then((avatar) => {
-        if (!mounted || !avatar) return
-        patchProfile({
-          avatarPath: avatar.avatarPath,
-          profileImage: avatar.signedUrl,
-        })
-      })
-      .catch((error) => {
-        const message = error instanceof Error ? error.message : "Profile photo could not be loaded"
-        if (!message.toLowerCase().includes("logged in")) toast.error(message)
-      })
-
-    return () => {
-      mounted = false
-    }
-  }, [patchProfile])
 
   const draftDisplayName = profileDraft.displayName.trim() || profileDraft.fullName
   const initials = useMemo(() => getInitials(draftDisplayName), [draftDisplayName])

@@ -3,6 +3,7 @@
 import { isLocalAuthFallbackEnabled, isSupabaseConfigured, supabase } from "@/lib/supabase/client"
 import type { AuthProfile, AuthSession, AuthUser, CreateProfileInput, SignInInput, SignUpInput } from "@/lib/auth/auth-types"
 import { defaultAuthProfile } from "@/lib/auth/auth-types"
+import { EMAIL_VERIFICATION_CALLBACK_URL } from "@/lib/auth/email-verification"
 import { clearLocalAuthSession, getStoredLocalAuthSession, saveLocalAuthSession } from "@/lib/auth/local-auth-session.mjs"
 import { clearSupabaseSessionCookie, setSupabaseSessionCookie } from "@/lib/auth/session-cookie.mjs"
 
@@ -123,6 +124,7 @@ export const authAdapter = {
       email: profile.email,
       password: input.password,
       options: {
+        emailRedirectTo: EMAIL_VERIFICATION_CALLBACK_URL,
         data: {
           ...profile,
           role: "trainee",

@@ -8,6 +8,7 @@ import {
   profileAvatarPath,
   validateModuleFile,
 } from "@/lib/supabase/file-validation.mjs"
+import { avatarPathFromProfileData } from "@/lib/supabase/profile-avatar-data.mjs"
 
 const PROFILE_SCOPE_KEY = "default"
 const SIGNED_URL_SECONDS = 60 * 60
@@ -77,7 +78,7 @@ async function signedUrlForPath(path: string) {
 export async function loadProfileAvatar(): Promise<ProfileAvatarResult | null> {
   const user = await getAuthenticatedUser()
   const profileData = await loadProfileData(user.id)
-  const avatarPath = typeof profileData.avatar_path === "string" ? profileData.avatar_path : ""
+  const avatarPath = avatarPathFromProfileData(profileData)
   if (!avatarPath) return null
 
   return {
@@ -134,8 +135,7 @@ export async function removeProfileAvatar(avatarPath?: string) {
   const client = ensureSupabase()
   const user = await getAuthenticatedUser()
   const existingData = await loadProfileData(user.id)
-  const currentAvatarPath =
-    avatarPath || (typeof existingData.avatar_path === "string" ? existingData.avatar_path : "")
+  const currentAvatarPath = avatarPath || avatarPathFromProfileData(existingData)
 
   if (currentAvatarPath) {
     const { error } = await client.storage.from(USER_FILES_BUCKET).remove([currentAvatarPath])

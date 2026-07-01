@@ -3,7 +3,6 @@
 import { create } from "zustand"
 import { authAdapter } from "@/lib/auth/auth-adapter"
 import type { AuthProfile, AuthSession, AuthStatus, AuthUser, SignInInput, SignUpInput } from "@/lib/auth/auth-types"
-import { defaultUserProfile, useUserProfileStore } from "@/lib/user-profile-store"
 
 interface AuthStore {
   user: AuthUser | null
@@ -15,15 +14,6 @@ interface AuthStore {
   signIn: (input: SignInInput) => Promise<void>
   restoreSession: () => Promise<void>
   signOut: () => Promise<void>
-}
-
-function seedUserProfile(profile: AuthProfile) {
-  const currentProfile = useUserProfileStore.getState().profile
-  const hasCustomProfile = JSON.stringify(currentProfile) !== JSON.stringify(defaultUserProfile)
-
-  if (!hasCustomProfile) {
-    useUserProfileStore.getState().updateProfile(profile)
-  }
 }
 
 function readableError(error: unknown) {
@@ -50,7 +40,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signIn: async (input) => {
     const result = await authAdapter.signIn(input)
-    seedUserProfile(result.profile)
     set({
       user: result.user,
       profile: result.profile,
@@ -64,7 +53,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
     try {
       const result = await authAdapter.getSession()
       if (result?.session) {
-        seedUserProfile(result.profile)
         set({
           user: result.user,
           profile: result.profile,
