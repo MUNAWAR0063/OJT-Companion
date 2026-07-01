@@ -150,12 +150,15 @@ export function Sidebar({ variant = "responsive", onNavigate }: SidebarProps) {
           )}
           aria-label="Go to dashboard"
         >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105">
+          <div className={cn(
+            "flex flex-shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105",
+            isExpanded ? "h-12 w-12" : "h-10 w-10"
+          )}>
             <ThemedLogo alt="OJT Companion logo" className="h-full w-full" />
           </div>
           <div className={cn("flex flex-col leading-tight", labelClassName)}>
-            <span className="truncate text-sm font-semibold text-foreground">OJT Companion</span>
-            <span className="truncate text-xs text-muted-foreground">OADP 2026</span>
+            <span className="truncate text-base font-semibold text-foreground">OJT Companion</span>
+            <span className="truncate text-sm text-muted-foreground">OADP 2026</span>
           </div>
         </Link>
         {canCollapse && (

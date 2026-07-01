@@ -3,10 +3,15 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { supabaseStateStorage } from "@/lib/supabase/storage"
+import {
+  isRoadmapChecklistNotification,
+  reconcileRoadmapChecklistNotifications,
+} from "@/lib/notification-policy.mjs"
 
 export type NotificationType =
   | "reminder"
   | "incomplete-checklist"
+  | "roadmap-checklist"
   | "weekly-deadline"
   | "journal-reminder"
   | "learning-reminder"
@@ -18,6 +23,7 @@ export interface NotificationCandidate {
   message: string
   href: string
   dueAt?: string
+  weekNumber?: number
 }
 
 export interface AppNotification extends NotificationCandidate {
@@ -29,11 +35,13 @@ export interface AppNotification extends NotificationCandidate {
 
 interface NotificationStore {
   notifications: AppNotification[]
+  dismissedFingerprints: string[]
   syncNotifications: (candidates: NotificationCandidate[]) => AppNotification[]
   createReminder: (input: Omit<NotificationCandidate, "fingerprint" | "type">) => AppNotification
   markAsRead: (id: string) => void
   markAllAsRead: () => void
   markAsToasted: (ids: string[]) => void
+  resetHistory: () => void
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10)
@@ -42,12 +50,37 @@ export const useNotificationStore = create<NotificationStore>()(
   persist(
     (set, get) => ({
       notifications: [],
+      dismissedFingerprints: [],
 
       syncNotifications: (candidates) => {
-        const existing = new Set(get().notifications.map((notification) => notification.fingerprint))
+        const current = get()
+        const activeRoadmapCandidate = candidates.find(
+          (candidate) => candidate.type === "roadmap-checklist"
+        )
+        const activeRoadmapFingerprint = activeRoadmapCandidate?.fingerprint ?? null
+        const activeCandidates = candidates.filter(
+          (candidate) =>
+            !isRoadmapChecklistNotification(candidate) ||
+            candidate.fingerprint === activeRoadmapFingerprint
+        )
+        const activeFingerprints = new Set(activeCandidates.map((candidate) => candidate.fingerprint))
+        const reconciledNotifications = reconcileRoadmapChecklistNotifications(
+          current.notifications,
+          activeRoadmapCandidate
+        ) as AppNotification[]
+        const dismissedFingerprints = current.dismissedFingerprints.filter((fingerprint) =>
+          activeFingerprints.has(fingerprint)
+        )
+        const dismissed = new Set(dismissedFingerprints)
+        const existing = new Set(
+          reconciledNotifications.map((notification) => notification.fingerprint)
+        )
         const now = new Date().toISOString()
-        const added = candidates
-          .filter((candidate) => !existing.has(candidate.fingerprint))
+        const added = activeCandidates
+          .filter(
+            (candidate) =>
+              !existing.has(candidate.fingerprint) && !dismissed.has(candidate.fingerprint)
+          )
           .map((candidate) => ({
             ...candidate,
             id: makeId(),
@@ -55,10 +88,15 @@ export const useNotificationStore = create<NotificationStore>()(
             createdAt: now,
             toastedAt: null,
           }))
-        if (added.length) {
-          set((state) => ({
-            notifications: [...added, ...state.notifications].slice(0, 300),
-          }))
+        if (
+          added.length ||
+          reconciledNotifications.length !== current.notifications.length ||
+          dismissedFingerprints.length !== current.dismissedFingerprints.length
+        ) {
+          set({
+            notifications: [...added, ...reconciledNotifications].slice(0, 300),
+            dismissedFingerprints,
+          })
         }
         return added
       },
@@ -98,6 +136,17 @@ export const useNotificationStore = create<NotificationStore>()(
           ),
         }))
       },
+
+      resetHistory: () =>
+        set((state) => ({
+          notifications: [],
+          dismissedFingerprints: Array.from(
+            new Set([
+              ...state.dismissedFingerprints,
+              ...state.notifications.map((notification) => notification.fingerprint),
+            ])
+          ).slice(0, 500),
+        })),
     }),
     {
       name: "ojt-notification-center",

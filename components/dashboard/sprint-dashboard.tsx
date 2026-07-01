@@ -28,24 +28,23 @@ import { useGalleryStore } from "@/lib/gallery-store"
 import { useJournalStore } from "@/lib/journal-store"
 import { useKnowledgeStore } from "@/lib/knowledge-store"
 import { usePlannerStore, type PlannerPriority } from "@/lib/planner-store"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
 import { useRoadmapStore } from "@/lib/roadmap-store"
 import { useReportStore } from "@/lib/report-store"
 import { useStandardsStore } from "@/lib/standards-store"
 import { useWorkspaceProgress } from "@/lib/workspace-progress"
 import { useDisciplineWorkspace } from "@/lib/discipline/use-discipline-workspace"
 
-const priorityRank: Record<PlannerPriority, number> = { high: 0, medium: 1, low: 2 }
+const priorityRank: Record<PlannerPriority, number> = { follow_up: 0, high: 1, medium: 2, low: 3 }
 
-function ProgressWidget({
+function CountWidget({
   title,
-  progress,
   count,
   countLabel,
   href,
   icon: Icon,
 }: {
   title: string
-  progress: number
   count: number
   countLabel: string
   href: string
@@ -56,20 +55,18 @@ function ProgressWidget({
     : `${countLabel}s`
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className="space-y-4 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="h-5 w-5" /></div>
-          <Badge variant="outline">{progress}%</Badge>
+    <Card className="h-full transition-shadow hover:shadow-md">
+      <CardContent className="flex h-full flex-col p-5">
+        <div className="w-fit rounded-lg bg-primary/10 p-2 text-primary">
+          <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="font-semibold">{title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h3 className="mt-4 font-semibold">{title}</h3>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">
             {count} {count === 1 ? countLabel : pluralLabel}
           </p>
         </div>
-        <Progress value={progress} />
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
+        <Button asChild variant="ghost" size="sm" className="-ml-3 mt-4 w-fit">
           <Link href={href}>Open <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
         </Button>
       </CardContent>
@@ -82,7 +79,7 @@ export function SprintDashboard() {
   const progressSummary = useWorkspaceProgress()
   const roadmaps = useRoadmapStore((state) => state.roadmaps)
   const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
-  const plannerWeeks = usePlannerStore((state) => state.weeks)
+  const storedPlannerWeeks = usePlannerStore((state) => state.weeks)
   const selectedPlannerWeekId = usePlannerStore((state) => state.selectedWeekId)
   const allEquipment = useEquipmentStore((state) => state.equipment)
   const allArticles = useKnowledgeStore((state) => state.articles)
@@ -95,6 +92,10 @@ export function SprintDashboard() {
   const reports = useReportStore((state) => state.reports)
 
   const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0] ?? null
+  const plannerWeeks = useMemo(
+    () => (roadmap ? generateWeeklyPlansFromRoadmap(roadmap) : storedPlannerWeeks) as typeof storedPlannerWeeks,
+    [roadmap, storedPlannerWeeks]
+  )
 
   const currentWeek = useMemo(() => {
     if (!roadmap?.weeks.length) return null
@@ -126,12 +127,6 @@ export function SprintDashboard() {
         )
         .slice(0, 4)
   }, [currentWeek?.weekNumber, plannerWeeks, selectedPlannerWeekId])
-
-  const competencyById = new Map(progressSummary.competencies.map((competency) => [competency.id, competency]))
-  const equipmentCompetency = competencyById.get("equipment-library")
-  const knowledgeCompetency = competencyById.get("knowledge-base")
-  const journalCompetency = competencyById.get("field-notes")
-  const documentCompetency = competencyById.get("standards-documents")
 
   const activities = useMemo(() => {
     const items = [
@@ -223,23 +218,19 @@ export function SprintDashboard() {
             <div className="flex items-end gap-3">
               <span className="text-5xl font-bold">{progressSummary.overallProgress}%</span>
               <span className="pb-1 text-sm text-muted-foreground">
-                across {progressSummary.activeModuleCount} active {progressSummary.activeModuleCount === 1 ? "module" : "modules"}
+                Learning Roadmap completion
               </span>
             </div>
             <Progress value={progressSummary.overallProgress} className="mt-5 h-3" />
           </div>
           <div className="rounded-xl bg-muted/50 p-5">
-            <p className="text-sm font-medium">Tracked workspace</p>
-            <p className="mt-2 text-3xl font-semibold">
-              {progressSummary.completedWeeklyTasks +
-                equipment.length +
-                articles.length +
-                journalEntries.length +
-                documents.length +
-                galleryPhotos.length +
-                standards.length}
+            <p className="text-sm font-medium">Learning Roadmap</p>
+            <p className="mt-2 text-lg font-semibold">
+              {roadmap?.title ?? "No roadmap selected"}
             </p>
-            <p className="text-xs text-muted-foreground">learning and engineering records</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Overall progress is calculated only from Learning Roadmap completion.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -306,10 +297,10 @@ export function SprintDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ProgressWidget title="Equipment Progress" progress={equipmentCompetency?.progress ?? 0} count={equipment.length} countLabel="equipment item" href="/equipment" icon={CircuitBoard} />
-        <ProgressWidget title="Knowledge Progress" progress={knowledgeCompetency?.progress ?? 0} count={articles.length} countLabel="article" href="/tasks" icon={BookOpen} />
-        <ProgressWidget title="Journal Progress" progress={journalCompetency?.progress ?? 0} count={journalEntries.length} countLabel="entry" href="/team" icon={NotebookPen} />
-        <ProgressWidget title="Document Progress" progress={documentCompetency?.progress ?? 0} count={documents.length + standards.length} countLabel="document" href="/documents" icon={FileText} />
+        <CountWidget title="Equipment" count={equipment.length} countLabel="equipment item" href="/equipment" icon={CircuitBoard} />
+        <CountWidget title="Knowledge" count={articles.length} countLabel="article" href="/tasks" icon={BookOpen} />
+        <CountWidget title="Journal" count={journalEntries.length} countLabel="entry" href="/team" icon={NotebookPen} />
+        <CountWidget title="Documents" count={documents.length} countLabel="document" href="/documents" icon={FileText} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">

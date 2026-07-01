@@ -9,6 +9,11 @@ import { useKnowledgeStore } from "@/lib/knowledge-store"
 import { useNotificationStore, type NotificationCandidate } from "@/lib/notification-store"
 import { usePlannerStore } from "@/lib/planner-store"
 import { useRoadmapStore } from "@/lib/roadmap-store"
+import { buildCurrentRoadmapChecklistNotification } from "@/lib/notification-policy.mjs"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
+
+const configuredStartDate = process.env.NEXT_PUBLIC_OJT_START_DATE || "2026-07-01"
+const configuredTotalWeeks = Number(process.env.NEXT_PUBLIC_OJT_TOTAL_WEEKS) || 18
 
 const localDateKey = (date = new Date()) => {
   const pad = (value: number) => String(value).padStart(2, "0")
@@ -17,7 +22,7 @@ const localDateKey = (date = new Date()) => {
 
 export function NotificationEngine() {
   const router = useRouter()
-  const plannerWeeks = usePlannerStore((state) => state.weeks)
+  const storedPlannerWeeks = usePlannerStore((state) => state.weeks)
   const equipment = useEquipmentStore((state) => state.equipment)
   const articles = useKnowledgeStore((state) => state.articles)
   const journals = useJournalStore((state) => state.entries)
@@ -36,8 +41,13 @@ export function NotificationEngine() {
   const candidates = useMemo(() => {
     const next: NotificationCandidate[] = []
     const today = localDateKey(new Date(now))
+    const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0]
+    const plannerWeeks = (roadmap
+      ? generateWeeklyPlansFromRoadmap(roadmap)
+      : storedPlannerWeeks) as typeof storedPlannerWeeks
 
-    plannerWeeks.forEach((week) =>
+    if (!roadmap) {
+      plannerWeeks.forEach((week) =>
       week.objectives.forEach((objective) =>
         objective.checklist.filter((item) => !item.done).forEach((item) => {
           next.push({
@@ -49,7 +59,8 @@ export function NotificationEngine() {
           })
         })
       )
-    )
+      )
+    }
     equipment.forEach((item) =>
       item.checklist.filter((check) => !check.done).forEach((check) => {
         next.push({
@@ -83,23 +94,17 @@ export function NotificationEngine() {
         })
       })
     )
-    roadmaps.forEach((roadmap) =>
-      roadmap.weeks.forEach((week) =>
-        week.objectives.forEach((objective) =>
-          objective.checklist.filter((item) => !item.done).forEach((item) => {
-            next.push({
-              fingerprint: `roadmap-checklist-${item.id}`,
-              type: "incomplete-checklist",
-              title: "Incomplete Roadmap Checklist",
-              message: `Week ${week.weekNumber} · ${objective.title}: ${item.text}`,
-              href: "/learning/roadmap",
-            })
-          })
-        )
-      )
-    )
 
-    const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0]
+    const roadmapChecklistNotification = buildCurrentRoadmapChecklistNotification({
+      roadmap,
+      now: new Date(now),
+      fallbackStartDate: configuredStartDate,
+      fallbackTotalWeeks: configuredTotalWeeks,
+    })
+    if (roadmapChecklistNotification) {
+      next.push(roadmapChecklistNotification as NotificationCandidate)
+    }
+
     if (roadmap) {
       plannerWeeks.filter((week) => week.progress < 100).forEach((week) => {
         const dueDate = new Date(`${roadmap.startDate}T23:59:59`)
@@ -147,7 +152,7 @@ export function NotificationEngine() {
       })
     }
     return next
-  }, [articles, equipment, journals, now, plannerWeeks, roadmaps, selectedRoadmapId])
+  }, [articles, equipment, journals, now, storedPlannerWeeks, roadmaps, selectedRoadmapId])
 
   useEffect(() => {
     syncNotifications(candidates)

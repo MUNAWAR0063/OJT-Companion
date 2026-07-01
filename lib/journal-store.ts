@@ -8,6 +8,13 @@ export interface JournalChecklistItem {
   id: string
   text: string
   done: boolean
+  journalEntryId?: string
+  weeklyObjectiveId?: string
+  dueWeekId?: string
+  priority?: "follow_up"
+  status?: "not-started" | "completed"
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface JournalAttachment {
@@ -54,8 +61,9 @@ interface JournalStore {
   updateEntry: (id: string, updates: Partial<JournalEntryInput>) => void
   deleteEntry: (id: string) => void
   selectEntry: (id: string | null) => void
-  addChecklistItem: (id: string, text: string) => void
+  addChecklistItem: (id: string, text: string, metadata?: Partial<JournalChecklistItem>) => JournalChecklistItem | null
   toggleChecklistItem: (id: string, itemId: string) => void
+  setChecklistItemDone: (id: string, itemId: string, done: boolean) => void
   deleteChecklistItem: (id: string, itemId: string) => void
   addAttachment: (id: string, kind: "attachments" | "photos", attachment: Omit<JournalAttachment, "id" | "createdAt">) => void
   deleteAttachment: (id: string, kind: "attachments" | "photos", attachmentId: string) => void
@@ -113,18 +121,36 @@ export const useJournalStore = create<JournalStore>()(
 
       selectEntry: (id) => set({ selectedEntryId: id }),
 
-      addChecklistItem: (id, text) =>
+      addChecklistItem: (id, text, metadata = {}) => {
+        let created: JournalChecklistItem | null = null
         set((state) => ({
           entries: state.entries.map((entry) =>
             entry.id === id
-              ? {
-                  ...entry,
-                  checklist: [...entry.checklist, { id: makeId(), text: text.trim(), done: false }],
-                  updatedAt: new Date().toISOString(),
-                }
+              ? (() => {
+                  const now = new Date().toISOString()
+                  created = {
+                    id: metadata.id || makeId(),
+                    text: text.trim(),
+                    done: Boolean(metadata.done),
+                    journalEntryId: metadata.journalEntryId || entry.id,
+                    weeklyObjectiveId: metadata.weeklyObjectiveId,
+                    dueWeekId: metadata.dueWeekId,
+                    priority: metadata.priority,
+                    status: metadata.status || (metadata.done ? "completed" : "not-started"),
+                    createdAt: metadata.createdAt || now,
+                    updatedAt: metadata.updatedAt || now,
+                  }
+                  return {
+                    ...entry,
+                    checklist: [...entry.checklist, created],
+                    updatedAt: now,
+                  }
+                })()
               : entry
           ),
-        })),
+        }))
+        return created
+      },
 
       toggleChecklistItem: (id, itemId) =>
         set((state) => ({
@@ -133,7 +159,36 @@ export const useJournalStore = create<JournalStore>()(
               ? {
                   ...entry,
                   checklist: entry.checklist.map((item) =>
-                    item.id === itemId ? { ...item, done: !item.done } : item
+                    item.id === itemId
+                      ? {
+                          ...item,
+                          done: !item.done,
+                          status: !item.done ? "completed" : "not-started",
+                          updatedAt: new Date().toISOString(),
+                        }
+                      : item
+                  ),
+                  updatedAt: new Date().toISOString(),
+                }
+              : entry
+          ),
+        })),
+
+      setChecklistItemDone: (id, itemId, done) =>
+        set((state) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === id
+              ? {
+                  ...entry,
+                  checklist: entry.checklist.map((item) =>
+                    item.id === itemId
+                      ? {
+                          ...item,
+                          done,
+                          status: done ? "completed" : "not-started",
+                          updatedAt: new Date().toISOString(),
+                        }
+                      : item
                   ),
                   updatedAt: new Date().toISOString(),
                 }

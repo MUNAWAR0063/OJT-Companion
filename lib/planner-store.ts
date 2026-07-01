@@ -4,7 +4,7 @@ import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { supabaseStateStorage } from "@/lib/supabase/storage"
 
-export type PlannerPriority = "high" | "medium" | "low"
+export type PlannerPriority = "high" | "medium" | "low" | "follow_up"
 export type PlannerStatus = "not-started" | "in-progress" | "completed"
 
 export interface PlannerChecklistItem {

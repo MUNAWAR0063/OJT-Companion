@@ -34,10 +34,21 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { userGuides, type UserGuide } from "@/lib/user-guides"
 
 type IssueForm = {
   subject: string
@@ -193,17 +204,6 @@ const faqs = [
   },
 ]
 
-const guides = [
-  ["Getting Started", "Set up your trainee workspace, roadmap, planner, and evidence flow.", "5 min"],
-  ["Creating Weekly Planner", "Plan weekly objectives, estimate hours, and track task completion.", "6 min"],
-  ["Building Learning Roadmap", "Structure OJT trips, weeks, objectives, and milestones.", "7 min"],
-  ["Managing Competencies", "Understand how competency evidence and progress are calculated.", "6 min"],
-  ["Equipment Library", "Catalog equipment details, checklists, photos, and related standards.", "8 min"],
-  ["Generating Reports", "Create progress reports for mentors, assessors, and administrators.", "4 min"],
-  ["Using Search", "Find records across modules using keywords, categories, and linked evidence.", "3 min"],
-  ["Application Settings", "Manage theme, language, profile, storage, backup, import, and export.", "5 min"],
-].map(([title, description, readingTime]) => ({ title, description, readingTime }))
-
 const announcements = [
   {
     title: "Competency progress calculation updated",
@@ -276,7 +276,7 @@ const statuses = [
   { name: "Storage", value: "Operational", icon: Server },
   { name: "Authentication", value: "Operational", icon: ShieldCheck },
   { name: "Network", value: "Operational", icon: Wifi },
-  { name: "Version", value: "v1.0.0", icon: Settings },
+  { name: "Version", value: "v.1.2.1", icon: Settings },
   { name: "Deployment Date", value: "2026-07-01", icon: Clock3 },
   { name: "Last Sync", value: "Local workspace", icon: Gauge },
 ]
@@ -306,6 +306,7 @@ function copyToClipboard(value: string, label: string) {
 
 export function HelpContent() {
   const [query, setQuery] = useState("")
+  const [selectedGuide, setSelectedGuide] = useState<UserGuide | null>(null)
   const [issueForm, setIssueForm] = useState<IssueForm>(initialIssueForm)
   const [screenshotName, setScreenshotName] = useState("")
   const [issueErrors, setIssueErrors] = useState<Partial<Record<keyof IssueForm, string>>>({})
@@ -322,8 +323,15 @@ export function HelpContent() {
   }, [normalizedQuery])
 
   const filteredGuides = useMemo(() => {
-    if (!normalizedQuery) return guides
-    return guides.filter((guide) => [guide.title, guide.description].some((item) => includesQuery(item, normalizedQuery)))
+    if (!normalizedQuery) return userGuides
+    return userGuides.filter((guide) =>
+      [
+        guide.title,
+        guide.description,
+        ...guide.sections.flatMap((section) => [section.heading, ...section.steps]),
+        ...guide.tips,
+      ].some((item) => includesQuery(item, normalizedQuery))
+    )
   }, [normalizedQuery])
 
   const filteredAnnouncements = useMemo(() => {
@@ -493,7 +501,7 @@ export function HelpContent() {
             <SectionHeader title="User Guide" description="Practical documentation for trainee workflows." />
             <div className="grid gap-4 md:grid-cols-2">
               {filteredGuides.map((guide) => (
-                <Card key={guide.title} className="p-5">
+                <Card key={guide.id} className="p-5">
                   <div className="flex items-start gap-3">
                     <div className="rounded-lg bg-primary/10 p-2 text-primary">
                       <BookOpen className="h-5 w-5" />
@@ -503,7 +511,7 @@ export function HelpContent() {
                       <p className="mt-2 text-sm text-muted-foreground">{guide.description}</p>
                       <div className="mt-4 flex items-center justify-between gap-3">
                         <span className="text-xs text-muted-foreground">{guide.readingTime} read</span>
-                        <Button type="button" size="sm" variant="outline" onClick={() => toast.info(`${guide.title} guide opened`)}>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setSelectedGuide(guide)}>
                           Open Guide
                         </Button>
                       </div>
@@ -513,6 +521,81 @@ export function HelpContent() {
               ))}
             </div>
           </section>
+
+          <Dialog
+            open={selectedGuide !== null}
+            onOpenChange={(open) => {
+              if (!open) setSelectedGuide(null)
+            }}
+          >
+            <DialogContent className="flex h-[calc(100dvh-1rem)] max-w-[calc(100%-1rem)] flex-col gap-0 overflow-hidden p-0 sm:h-[min(85vh,760px)] sm:max-w-3xl">
+              {selectedGuide ? (
+                <>
+                  <DialogHeader className="border-b px-5 py-5 pr-14 text-left sm:px-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <BookOpen className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <DialogTitle className="text-xl leading-tight sm:text-2xl">
+                            {selectedGuide.title}
+                          </DialogTitle>
+                          <Badge variant="secondary">{selectedGuide.readingTime} read</Badge>
+                        </div>
+                        <DialogDescription className="leading-relaxed">
+                          {selectedGuide.description}
+                        </DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+
+                  <ScrollArea className="min-h-0 flex-1">
+                    <div className="space-y-8 px-5 py-6 sm:px-6">
+                      {selectedGuide.sections.map((section, sectionIndex) => (
+                        <section key={section.heading} aria-labelledby={`${selectedGuide.id}-section-${sectionIndex}`}>
+                          <h3
+                            id={`${selectedGuide.id}-section-${sectionIndex}`}
+                            className="text-base font-semibold tracking-tight sm:text-lg"
+                          >
+                            {sectionIndex + 1}. {section.heading}
+                          </h3>
+                          <ol className="mt-4 space-y-3 pl-5 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                            {section.steps.map((step) => (
+                              <li key={step} className="list-decimal pl-1 marker:font-medium marker:text-foreground">
+                                {step}
+                              </li>
+                            ))}
+                          </ol>
+                        </section>
+                      ))}
+
+                      <section
+                        className="rounded-xl border border-primary/20 bg-primary/5 p-4"
+                        aria-labelledby={`${selectedGuide.id}-tips`}
+                      >
+                        <h3 id={`${selectedGuide.id}-tips`} className="flex items-center gap-2 font-semibold">
+                          <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+                          Practical tips
+                        </h3>
+                        <ul className="mt-3 space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+                          {selectedGuide.tips.map((tip) => (
+                            <li key={tip} className="list-disc pl-1">{tip}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  </ScrollArea>
+
+                  <DialogFooter className="border-t bg-background px-5 py-4 sm:px-6">
+                    <DialogClose asChild>
+                      <Button type="button" className="min-h-11 sm:min-h-9">Close Guide</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </>
+              ) : null}
+            </DialogContent>
+          </Dialog>
 
           <section id="troubleshooting" className="space-y-4 scroll-mt-24">
             <SectionHeader title="Troubleshooting Center" description="Diagnose common problems before submitting a ticket." />

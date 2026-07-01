@@ -34,6 +34,13 @@ import {
   type JournalEntry,
   type JournalEntryInput,
 } from "@/lib/journal-store"
+import {
+  createFollowUpAction,
+  linkFollowUpToWeeklyPlanner,
+  resolveWeekFromJournalDate,
+} from "@/lib/follow-up-integration.mjs"
+import { useRoadmapStore } from "@/lib/roadmap-store"
+import type { RoadmapObjective } from "@/lib/roadmap-store"
 
 const todayKey = () => {
   const today = new Date()
@@ -100,12 +107,19 @@ export function FieldNotesInteractive() {
   const selectEntry = useJournalStore((state) => state.selectEntry)
   const addChecklistItem = useJournalStore((state) => state.addChecklistItem)
   const toggleChecklistItem = useJournalStore((state) => state.toggleChecklistItem)
+  const setChecklistItemDone = useJournalStore((state) => state.setChecklistItemDone)
   const deleteChecklistItem = useJournalStore((state) => state.deleteChecklistItem)
   const addAttachment = useJournalStore((state) => state.addAttachment)
   const deleteAttachment = useJournalStore((state) => state.deleteAttachment)
   const equipment = useEquipmentStore((state) => state.equipment)
+  const roadmaps = useRoadmapStore((state) => state.roadmaps)
+  const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
+  const createRoadmapObjective = useRoadmapStore((state) => state.createObjective)
+  const deleteRoadmapObjective = useRoadmapStore((state) => state.deleteObjective)
+  const updateRoadmapObjectiveStatus = useRoadmapStore((state) => state.updateObjectiveStatus)
 
   const selectedEntry = entries.find((entry) => entry.id === selectedEntryId) ?? null
+  const selectedRoadmap = roadmaps.find((roadmap) => roadmap.id === selectedRoadmapId) ?? roadmaps[0] ?? null
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<JournalEntryInput>(emptyForm)
@@ -247,8 +261,63 @@ export function FieldNotesInteractive() {
 
   const addChecklist = () => {
     if (!selectedEntry || !checklistInput.trim()) return
-    addChecklistItem(selectedEntry.id, checklistInput)
+    const dueWeek = resolveWeekFromJournalDate(selectedRoadmap, selectedEntry.date)
+    const checklistId = Math.random().toString(36).slice(2, 10)
+    const weeklyObjectiveId = Math.random().toString(36).slice(2, 10)
+    const action = createFollowUpAction({
+      id: checklistId,
+      journalEntryId: selectedEntry.id,
+      title: checklistInput,
+      dueWeekId: dueWeek?.id,
+      weeklyObjectiveId,
+    })
+    addChecklistItem(selectedEntry.id, checklistInput, {
+      id: action.id,
+      journalEntryId: action.journalEntryId,
+      weeklyObjectiveId: action.weeklyObjectiveId,
+      dueWeekId: action.dueWeekId,
+      priority: "follow_up",
+      status: action.status as "not-started" | "completed",
+      createdAt: action.createdAt,
+      updatedAt: action.updatedAt,
+    })
+    if (selectedRoadmap && dueWeek) {
+      createRoadmapObjective(
+        selectedRoadmap.id,
+        dueWeek.id,
+        linkFollowUpToWeeklyPlanner({
+          action,
+          journalEntryTitle: selectedEntry.title,
+          journalDate: selectedEntry.date,
+        }) as Partial<RoadmapObjective>
+      )
+    }
     setChecklistInput("")
+  }
+
+  const toggleFollowUp = (itemId: string) => {
+    if (!selectedEntry) return
+    const item = selectedEntry.checklist.find((check) => check.id === itemId)
+    if (!item) return
+    const nextDone = !item.done
+    setChecklistItemDone(selectedEntry.id, itemId, nextDone)
+    if (selectedRoadmap && item.dueWeekId && item.weeklyObjectiveId) {
+      updateRoadmapObjectiveStatus(
+        selectedRoadmap.id,
+        item.dueWeekId,
+        item.weeklyObjectiveId,
+        nextDone ? "completed" : "not-started"
+      )
+    }
+  }
+
+  const deleteFollowUp = (itemId: string) => {
+    if (!selectedEntry) return
+    const item = selectedEntry.checklist.find((check) => check.id === itemId)
+    if (selectedRoadmap && item?.dueWeekId && item.weeklyObjectiveId) {
+      deleteRoadmapObjective(selectedRoadmap.id, item.dueWeekId, item.weeklyObjectiveId)
+    }
+    deleteChecklistItem(selectedEntry.id, itemId)
   }
 
   const handleFiles = (
@@ -365,9 +434,18 @@ export function FieldNotesInteractive() {
                   <div className="divide-y rounded-md border">
                     {selectedEntry.checklist.map((item) => (
                       <div key={item.id} className="flex items-start gap-3 p-3">
-                        <Checkbox className="mt-0.5" checked={item.done} onCheckedChange={() => toggleChecklistItem(selectedEntry.id, item.id)} />
-                        <span className={`flex-1 text-sm ${item.done ? "text-muted-foreground line-through" : ""}`}>{item.text}</span>
-                        <button onClick={() => deleteChecklistItem(selectedEntry.id, item.id)} aria-label={`Delete ${item.text}`}><Trash2 className="h-4 w-4 text-destructive" /></button>
+                        <Checkbox className="mt-0.5" checked={item.done} onCheckedChange={() => toggleFollowUp(item.id)} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-sm ${item.done ? "text-muted-foreground line-through" : ""}`}>{item.text}</span>
+                            {item.priority === "follow_up" && (
+                              <Badge variant="outline" className="border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300">
+                                Follow Up
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <button onClick={() => deleteFollowUp(item.id)} aria-label={`Delete ${item.text}`}><Trash2 className="h-4 w-4 text-destructive" /></button>
                       </div>
                     ))}
                   </div>

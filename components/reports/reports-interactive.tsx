@@ -26,6 +26,7 @@ import { useJournalStore } from "@/lib/journal-store"
 import { useKnowledgeStore } from "@/lib/knowledge-store"
 import { createPdfBlob, downloadBlob, safeFilename } from "@/lib/pdf-export"
 import { usePlannerStore } from "@/lib/planner-store"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
 import {
   equipmentReportMarkdown,
   knowledgeReportMarkdown,
@@ -63,8 +64,9 @@ export function ReportsInteractive() {
   const reports = useReportStore((state) => state.reports)
   const createReport = useReportStore((state) => state.createReport)
   const deleteReport = useReportStore((state) => state.deleteReport)
-  const weeks = usePlannerStore((state) => state.weeks)
+  const storedPlannerWeeks = usePlannerStore((state) => state.weeks)
   const roadmaps = useRoadmapStore((state) => state.roadmaps)
+  const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
   const allEquipment = useEquipmentStore((state) => state.equipment)
   const allArticles = useKnowledgeStore((state) => state.articles)
   const equipment = useMemo(() => workspace.filter(allEquipment), [allEquipment, workspace])
@@ -72,6 +74,11 @@ export function ReportsInteractive() {
   const journals = useJournalStore((state) => state.entries)
   const documents = useDocumentStore((state) => state.documents)
   const standards = useStandardsStore((state) => state.standards)
+  const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0] ?? null
+  const weeks = useMemo(
+    () => (roadmap ? generateWeeklyPlansFromRoadmap(roadmap) : storedPlannerWeeks) as typeof storedPlannerWeeks,
+    [roadmap, storedPlannerWeeks]
+  )
 
   const [generatorOpen, setGeneratorOpen] = useState(false)
   const [reportType, setReportType] = useState<ReportType>("weekly")

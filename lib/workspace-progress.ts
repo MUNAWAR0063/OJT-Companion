@@ -116,7 +116,7 @@ export function useWorkspaceProgress(): WorkspaceProgressSummary {
       .filter((objective) => objective.status === "completed")
       .reduce((total, objective) => total + objective.estimatedHours, 0)
 
-    const roadmapProgress = average(roadmaps.map(getRoadmapProgress))
+    const roadmapProgress = getRoadmapProgress(roadmap)
     const plannerProgress = getPlannerProgress(plannerWeeks)
     const equipmentProgress = getEquipmentProgress(equipment)
     const knowledgeProgress = getKnowledgeProgress(articles)
@@ -310,7 +310,7 @@ export function useWorkspaceProgress(): WorkspaceProgressSummary {
     const completedCompetencies = activeCompetencies.filter((item) => item.status === "completed").length
     const inProgressCompetencies = activeCompetencies.filter((item) => item.status === "in-progress").length
     const notStartedCompetencies = competencies.length - completedCompetencies - inProgressCompetencies
-    const overallProgress = hasData ? average(activeCompetencies.map((item) => item.progress)) : 0
+    const overallProgress = roadmapProgress
     const equipmentMastered = equipment.filter((item) => item.progress >= 100).length
 
     const currentLevel =
@@ -320,7 +320,7 @@ export function useWorkspaceProgress(): WorkspaceProgressSummary {
           ? "Supervised Practice"
           : overallProgress >= 35
             ? "Developing Trainee"
-            : hasData
+            : roadmap
               ? "Foundation"
               : "Not Started"
 

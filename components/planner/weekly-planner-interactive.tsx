@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   CalendarDays,
-  CheckCircle2,
   Clock3,
   Edit2,
   GripVertical,
@@ -25,12 +26,29 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   usePlannerStore,
   type ObjectiveInput,
-  type PlannerObjective,
   type PlannerPriority,
   type PlannerStatus,
-  type PlannerWeek,
   type WeekInput,
 } from "@/lib/planner-store"
+import { useJournalStore } from "@/lib/journal-store"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
+import {
+  useRoadmapStore,
+  type RoadmapObjective,
+  type RoadmapWeek,
+} from "@/lib/roadmap-store"
+
+type LinkedPlannerObjective = RoadmapObjective & {
+  estimatedHours?: number
+  roadmapId: string
+  roadmapWeekId: string
+}
+
+type LinkedPlannerWeek = Omit<RoadmapWeek, "objectives"> & {
+  linkedRoadmapId: string
+  linkedWeekId: string
+  objectives: LinkedPlannerObjective[]
+}
 
 const statuses: Array<{ value: PlannerStatus; label: string; color: string }> = [
   { value: "not-started", label: "Todo", color: "bg-slate-500" },
@@ -42,6 +60,14 @@ const priorityStyles: Record<PlannerPriority, string> = {
   high: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
   medium: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   low: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  follow_up: "border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300",
+}
+
+const priorityLabels: Record<PlannerPriority, string> = {
+  high: "High",
+  medium: "Medium",
+  low: "Low",
+  follow_up: "Follow Up",
 }
 
 const emptyObjective: ObjectiveInput = {
@@ -55,7 +81,7 @@ const emptyObjective: ObjectiveInput = {
   notes: "",
 }
 
-function objectiveToInput(objective: PlannerObjective): ObjectiveInput {
+function objectiveToInput(objective: LinkedPlannerObjective): ObjectiveInput {
   return {
     title: objective.title,
     description: objective.description,
@@ -63,25 +89,69 @@ function objectiveToInput(objective: PlannerObjective): ObjectiveInput {
     priority: objective.priority,
     status: objective.status,
     equipment: objective.equipment,
-    estimatedHours: objective.estimatedHours,
+    estimatedHours: objective.estimatedHours ?? 1,
     notes: objective.notes,
   }
 }
 
+function objectiveInputToRoadmap(
+  input: ObjectiveInput,
+  existing?: LinkedPlannerObjective
+): Partial<RoadmapObjective> {
+  return {
+    title: input.title,
+    description: input.description,
+    priority: input.priority,
+    status: input.status,
+    checklist: input.checklist
+      .map((text) => text.trim())
+      .filter(Boolean)
+      .map((text, index) => {
+        const previous = existing?.checklist[index]
+        return {
+          id: previous?.text === text ? previous.id : Math.random().toString(36).slice(2, 10),
+          text,
+          done:
+            input.status === "completed"
+              ? true
+              : input.status === "not-started"
+                ? false
+                : previous?.text === text
+                  ? previous.done
+                  : false,
+        }
+      }),
+    equipment: input.equipment,
+    estimatedHours: Math.max(0, Number(input.estimatedHours) || 0),
+    notes: input.notes,
+  }
+}
+
 export function WeeklyPlannerInteractive() {
-  const weeks = usePlannerStore((state) => state.weeks)
+  const searchParams = useSearchParams()
+  const roadmaps = useRoadmapStore((state) => state.roadmaps)
+  const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
+  const updateRoadmapWeek = useRoadmapStore((state) => state.updateWeek)
+  const createRoadmapObjective = useRoadmapStore((state) => state.createObjective)
+  const updateRoadmapObjective = useRoadmapStore((state) => state.updateObjective)
+  const deleteRoadmapObjective = useRoadmapStore((state) => state.deleteObjective)
+  const toggleRoadmapChecklist = useRoadmapStore((state) => state.toggleChecklistItem)
+  const moveRoadmapObjective = useRoadmapStore((state) => state.updateObjectiveStatus)
+  const setJournalChecklistItemDone = useJournalStore((state) => state.setChecklistItemDone)
+  const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0] ?? null
+  const weeks = useMemo(
+    () => (roadmap ? (generateWeeklyPlansFromRoadmap(roadmap) as LinkedPlannerWeek[]) : []),
+    [roadmap]
+  )
   const selectedWeekId = usePlannerStore((state) => state.selectedWeekId)
   const selectWeek = usePlannerStore((state) => state.selectWeek)
-  const createWeek = usePlannerStore((state) => state.createWeek)
-  const updateWeek = usePlannerStore((state) => state.updateWeek)
-  const deleteWeek = usePlannerStore((state) => state.deleteWeek)
-  const createObjective = usePlannerStore((state) => state.createObjective)
-  const updateObjective = usePlannerStore((state) => state.updateObjective)
-  const deleteObjective = usePlannerStore((state) => state.deleteObjective)
-  const toggleChecklist = usePlannerStore((state) => state.toggleChecklist)
-  const moveObjective = usePlannerStore((state) => state.moveObjective)
 
-  const selectedWeek = weeks.find((week) => week.id === selectedWeekId) ?? weeks[0] ?? null
+  const requestedWeekId = searchParams.get("week")
+  const selectedWeek =
+    weeks.find((week) => week.id === requestedWeekId) ??
+    weeks.find((week) => week.id === selectedWeekId) ??
+    weeks[0] ??
+    null
   const [weekDialogOpen, setWeekDialogOpen] = useState(false)
   const [editingWeekId, setEditingWeekId] = useState<string | null>(null)
   const [weekForm, setWeekForm] = useState<WeekInput>({
@@ -117,20 +187,18 @@ export function WeeklyPlannerInteractive() {
           objective.notes.toLowerCase().includes(query) ||
           objective.equipment.some((item) => item.toLowerCase().includes(query)))
     )
-    const priorityRank: Record<PlannerPriority, number> = { high: 0, medium: 1, low: 2 }
+    const priorityRank: Record<PlannerPriority, number> = { follow_up: 0, high: 1, medium: 2, low: 3 }
     if (sort === "priority") result.sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority])
-    if (sort === "hours") result.sort((a, b) => b.estimatedHours - a.estimatedHours)
+    if (sort === "hours") result.sort((a, b) => (b.estimatedHours ?? 1) - (a.estimatedHours ?? 1))
     if (sort === "title") result.sort((a, b) => a.title.localeCompare(b.title))
     return result
   }, [equipmentFilter, priorityFilter, search, selectedWeek, sort])
 
-  const openCreateWeek = () => {
-    setEditingWeekId(null)
-    setWeekForm({ weekNumber: Math.max(0, ...weeks.map((week) => week.weekNumber)) + 1, title: "", reflection: "" })
-    setWeekDialogOpen(true)
-  }
+  useEffect(() => {
+    if (selectedWeek && selectedWeek.id !== selectedWeekId) selectWeek(selectedWeek.id)
+  }, [selectWeek, selectedWeek, selectedWeekId])
 
-  const openEditWeek = (week: PlannerWeek) => {
+  const openEditWeek = (week: LinkedPlannerWeek) => {
     setEditingWeekId(week.id)
     setWeekForm({ weekNumber: week.weekNumber, title: week.title, reflection: week.reflection })
     setWeekDialogOpen(true)
@@ -141,20 +209,11 @@ export function WeeklyPlannerInteractive() {
       toast.error("Week title is required")
       return
     }
-    if (editingWeekId) {
-      updateWeek(editingWeekId, weekForm)
+    if (roadmap && editingWeekId) {
+      updateRoadmapWeek(roadmap.id, editingWeekId, weekForm as Partial<RoadmapWeek>)
       toast.success("Week updated")
-    } else {
-      createWeek(weekForm)
-      toast.success("Week created")
     }
     setWeekDialogOpen(false)
-  }
-
-  const removeWeek = (week: PlannerWeek) => {
-    if (!window.confirm(`Delete Week ${week.weekNumber} and all of its objectives?`)) return
-    deleteWeek(week.id)
-    toast.success("Week deleted")
   }
 
   const openCreateObjective = (status: PlannerStatus = "not-started") => {
@@ -163,36 +222,52 @@ export function WeeklyPlannerInteractive() {
     setObjectiveDialogOpen(true)
   }
 
-  const openEditObjective = (objective: PlannerObjective) => {
+  const openEditObjective = (objective: LinkedPlannerObjective) => {
     setEditingObjectiveId(objective.id)
     setObjectiveForm(objectiveToInput(objective))
     setObjectiveDialogOpen(true)
   }
 
   const saveObjective = () => {
-    if (!selectedWeek || !objectiveForm.title.trim()) {
+    if (!roadmap || !selectedWeek || !objectiveForm.title.trim()) {
       toast.error("Objective title is required")
       return
     }
+    const existingObjective = selectedWeek.objectives.find((objective) => objective.id === editingObjectiveId)
+    const input = objectiveInputToRoadmap(objectiveForm, existingObjective)
     if (editingObjectiveId) {
-      updateObjective(selectedWeek.id, editingObjectiveId, objectiveForm)
+      updateRoadmapObjective(roadmap.id, selectedWeek.id, editingObjectiveId, input)
       toast.success("Objective updated")
     } else {
-      createObjective(selectedWeek.id, objectiveForm)
+      createRoadmapObjective(roadmap.id, selectedWeek.id, input)
       toast.success("Objective created")
     }
     setObjectiveDialogOpen(false)
   }
 
-  const removeObjective = (objective: PlannerObjective) => {
-    if (!selectedWeek || !window.confirm(`Delete "${objective.title}"?`)) return
-    deleteObjective(selectedWeek.id, objective.id)
+  const removeObjective = (objective: LinkedPlannerObjective) => {
+    if (!roadmap || !selectedWeek || !window.confirm(`Delete "${objective.title}"?`)) return
+    deleteRoadmapObjective(roadmap.id, selectedWeek.id, objective.id)
     toast.success("Objective deleted")
   }
 
   const handleDrop = (status: PlannerStatus, beforeId?: string) => {
-    if (!selectedWeek || !draggedId) return
-    moveObjective(selectedWeek.id, draggedId, status, beforeId)
+    if (!roadmap || !selectedWeek || !draggedId) return
+    const draggedObjective = selectedWeek.objectives.find((objective) => objective.id === draggedId)
+    moveRoadmapObjective(roadmap.id, selectedWeek.id, draggedId, status, beforeId)
+    if (draggedObjective?.source === "daily_journal" && draggedObjective.journalEntryId) {
+      const journalChecklistItemId =
+        draggedObjective.journalChecklistItemId || draggedObjective.checklist[0]?.id
+      if (!journalChecklistItemId) {
+        setDraggedId(null)
+        return
+      }
+      setJournalChecklistItemDone(
+        draggedObjective.journalEntryId,
+        journalChecklistItemId,
+        status === "completed"
+      )
+    }
     setDraggedId(null)
   }
 
@@ -203,14 +278,16 @@ export function WeeklyPlannerInteractive() {
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <CalendarDays className="h-11 w-11 text-muted-foreground" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">No weekly plans yet</h3>
+              <h3 className="text-lg font-semibold">No roadmap-linked weekly plans yet</h3>
               <p className="max-w-md text-sm text-muted-foreground">
-                Create a week, add objectives, and move work across the board as your OJT progresses.
+                Create or select a Learning Roadmap to generate weekly goals automatically.
               </p>
             </div>
-            <Button onClick={openCreateWeek}>
+            <Button asChild>
+              <Link href="/learning/roadmap">
               <Plus className="mr-2 h-4 w-4" />
-              Create Week
+              Open Roadmap
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -223,21 +300,19 @@ export function WeeklyPlannerInteractive() {
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{selectedWeek.title}</CardTitle>
                     <Badge variant="outline">Week {selectedWeek.weekNumber}</Badge>
+                    <Badge variant="secondary">Linked to Roadmap</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">Changes are saved automatically on this device.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Changes update the active Learning Roadmap and are saved to Supabase.
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => openEditWeek(selectedWeek)}>
                     <Edit2 className="mr-2 h-4 w-4" />
                     Edit week
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => removeWeek(selectedWeek)}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                  <Button size="sm" onClick={openCreateWeek}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New week
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/learning/roadmap">Open Roadmap</Link>
                   </Button>
                 </div>
               </div>
@@ -251,29 +326,44 @@ export function WeeklyPlannerInteractive() {
             </CardHeader>
           </Card>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_1.3fr_0.8fr_0.8fr]">
-            <Select
-              value={selectedWeek.id}
-              onValueChange={(value) => {
-                selectWeek(value)
-                setEquipmentFilter("all")
-                setSearch("")
-              }}
-            >
-              <SelectTrigger aria-label="Select week">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+          <Card>
+            <CardContent className="space-y-4 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Select week</p>
+                  <p className="text-xs text-muted-foreground">Weekly goals are generated from the active roadmap.</p>
+                </div>
+                <Badge variant="outline">{weeks.length} weeks</Badge>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {[...weeks]
                   .sort((a, b) => a.weekNumber - b.weekNumber)
-                  .map((week) => (
-                    <SelectItem key={week.id} value={week.id}>
-                      Week {week.weekNumber}: {week.title}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <div className="relative">
+                  .map((week) => {
+                    const active = week.id === selectedWeek.id
+                    return (
+                      <Button
+                        key={week.id}
+                        type="button"
+                        variant={active ? "default" : "outline"}
+                        size="sm"
+                        className="h-auto min-w-24 shrink-0 flex-col items-start gap-1 px-3 py-2"
+                        onClick={() => {
+                          selectWeek(week.id)
+                          setEquipmentFilter("all")
+                          setSearch("")
+                        }}
+                      >
+                        <span className="text-xs font-medium">Week {week.weekNumber}</span>
+                        <span className="max-w-20 truncate text-[11px] opacity-80">{week.progress}% complete</span>
+                      </Button>
+                    )
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
@@ -282,30 +372,19 @@ export function WeeklyPlannerInteractive() {
                 placeholder="Search objectives..."
               />
             </div>
-            <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PlannerPriority | "all")}>
-              <SelectTrigger aria-label="Filter by priority"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All priorities</SelectItem>
-                <SelectItem value="high">High priority</SelectItem>
-                <SelectItem value="medium">Medium priority</SelectItem>
-                <SelectItem value="low">Low priority</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger aria-label="Sort objectives"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual">Manual order</SelectItem>
-                <SelectItem value="priority">Priority</SelectItem>
-                <SelectItem value="hours">Estimated hours</SelectItem>
-                <SelectItem value="title">Title</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {equipmentOptions.length > 0 && (
-            <div className="max-w-xs">
+            <div className="grid shrink-0 grid-cols-3 gap-2 sm:gap-3 lg:flex lg:justify-end">
+              <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PlannerPriority | "all")}>
+                <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Filter by priority"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All priorities</SelectItem>
+                  <SelectItem value="follow_up">Follow Up</SelectItem>
+                  <SelectItem value="high">High priority</SelectItem>
+                  <SelectItem value="medium">Medium priority</SelectItem>
+                  <SelectItem value="low">Low priority</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
-                <SelectTrigger aria-label="Filter by equipment"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full min-w-0 text-xs sm:w-52 sm:text-sm" aria-label="Filter by equipment"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All equipment</SelectItem>
                   {equipmentOptions.map((equipment) => (
@@ -313,8 +392,17 @@ export function WeeklyPlannerInteractive() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sort} onValueChange={setSort}>
+                <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Sort objectives"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual order</SelectItem>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="hours">Estimated hours</SelectItem>
+                  <SelectItem value="title">Title</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
 
           <div className="overflow-x-auto pb-3">
             <div className="grid min-w-[900px] grid-cols-3 gap-4">
@@ -371,10 +459,12 @@ export function WeeklyPlannerInteractive() {
                             </div>
 
                             <div className="flex flex-wrap gap-2">
-                              <Badge variant="outline" className={priorityStyles[objective.priority]}>{objective.priority}</Badge>
+                              <Badge variant="outline" className={priorityStyles[objective.priority]}>
+                                {priorityLabels[objective.priority]}
+                              </Badge>
                               <Badge variant="outline">
                                 <Clock3 className="mr-1 h-3 w-3" />
-                                {objective.estimatedHours}h
+                                {objective.estimatedHours ?? 1}h
                               </Badge>
                               {objective.equipment.map((equipment) => (
                                 <Badge key={equipment} variant="secondary">
@@ -391,7 +481,18 @@ export function WeeklyPlannerInteractive() {
                                     <Checkbox
                                       className="mt-0.5"
                                       checked={item.done}
-                                      onCheckedChange={() => toggleChecklist(selectedWeek.id, objective.id, item.id)}
+                                      onCheckedChange={() => {
+                                        if (!roadmap) return
+                                        const nextDone = !item.done
+                                        toggleRoadmapChecklist(roadmap.id, selectedWeek.id, objective.id, item.id)
+                                        if (objective.source === "daily_journal" && objective.journalEntryId) {
+                                          setJournalChecklistItemDone(
+                                            objective.journalEntryId,
+                                            objective.journalChecklistItemId || item.id,
+                                            nextDone
+                                          )
+                                        }
+                                      }}
                                     />
                                     <span className={item.done ? "text-muted-foreground line-through" : ""}>{item.text}</span>
                                   </label>
@@ -413,19 +514,6 @@ export function WeeklyPlannerInteractive() {
                               <Progress value={objective.progress} className="h-1.5" />
                             </div>
 
-                            <Select
-                              value={objective.status}
-                              onValueChange={(value) => moveObjective(selectedWeek.id, objective.id, value as PlannerStatus)}
-                            >
-                              <SelectTrigger className="h-8 text-xs" aria-label={`Change status for ${objective.title}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {statuses.map((item) => (
-                                  <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
                           </CardContent>
                         </Card>
                       ))}
@@ -448,7 +536,10 @@ export function WeeklyPlannerInteractive() {
             <CardContent>
               <Textarea
                 value={selectedWeek.reflection}
-                onChange={(event) => updateWeek(selectedWeek.id, { reflection: event.target.value })}
+                onChange={(event) =>
+                  roadmap &&
+                  updateRoadmapWeek(roadmap.id, selectedWeek.id, { reflection: event.target.value })
+                }
                 placeholder="Capture outcomes, lessons learned, and next steps..."
                 className="min-h-28"
               />
@@ -529,6 +620,7 @@ export function WeeklyPlannerInteractive() {
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="follow_up">Follow Up</SelectItem>
                 </SelectContent>
               </Select>
             </div>

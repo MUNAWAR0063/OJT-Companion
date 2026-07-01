@@ -12,7 +12,19 @@ import {
   Clock3,
   NotebookPen,
   Plus,
+  Trash2,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,6 +52,11 @@ const notificationConfig: Record<
     label: "Incomplete Checklist",
     icon: ClipboardCheck,
     color: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  },
+  "roadmap-checklist": {
+    label: "Roadmap Checklist",
+    icon: ClipboardCheck,
+    color: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
   },
   "weekly-deadline": {
     label: "Weekly Deadline",
@@ -75,6 +92,7 @@ export function NotificationsInteractive() {
   const createReminder = useNotificationStore((state) => state.createReminder)
   const markAsRead = useNotificationStore((state) => state.markAsRead)
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead)
+  const resetHistory = useNotificationStore((state) => state.resetHistory)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "unread">("all")
   const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all")
@@ -125,6 +143,11 @@ export function NotificationsInteractive() {
     router.push(notification.href)
   }
 
+  const clearHistory = () => {
+    resetHistory()
+    toast.success("Notification history berhasil direset.")
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -168,11 +191,32 @@ export function NotificationsInteractive() {
             </SelectContent>
           </Select>
         </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" onClick={markAllAsRead}>
-            <CheckCheck className="mr-2 h-4 w-4" />Mark All as Read
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {unreadCount > 0 && (
+            <Button variant="outline" onClick={markAllAsRead}>
+              <CheckCheck className="mr-2 h-4 w-4" />Mark All as Read
+            </Button>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" disabled={notifications.length === 0}>
+                <Trash2 className="mr-2 h-4 w-4" />Reset History
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset notification history?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah kamu yakin ingin menghapus semua notification history?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={clearHistory}>Reset History</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {notifications.length === 0 ? (

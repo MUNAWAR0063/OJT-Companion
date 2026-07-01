@@ -56,7 +56,3 @@ export function getDocumentProgress(documents: DocumentRecord[]) {
 export function getEquipmentProgress(equipment: EquipmentRecord[]) {
   return average(equipment.map((item) => item.progress))
 }
-
-export function getOverallProgress(modules: Array<{ hasData: boolean; progress: number }>) {
-  return average(modules.filter((module) => module.hasData).map((module) => module.progress))
-}

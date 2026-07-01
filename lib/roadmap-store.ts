@@ -3,9 +3,11 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { supabaseStateStorage } from "@/lib/supabase/storage"
+import { getRoadmapOverallProgress } from "@/lib/roadmap-progress.mjs"
+import { updateObjectiveStatus as applyObjectiveStatus } from "@/lib/roadmap-planner-integration.mjs"
 
 export type ObjectiveStatus = "not-started" | "in-progress" | "completed"
-export type ObjectivePriority = "high" | "medium" | "low"
+export type ObjectivePriority = "high" | "medium" | "low" | "follow_up"
 
 export interface ChecklistItem {
   id: string
@@ -21,8 +23,13 @@ export interface RoadmapObjective {
   status: ObjectiveStatus
   checklist: ChecklistItem[]
   equipment: string[]
+  estimatedHours: number
   notes: string
   progress: number
+  source?: "daily_journal"
+  journalEntryId?: string
+  journalChecklistItemId?: string
+  dueWeekId?: string
 }
 
 export interface RoadmapWeek {
@@ -91,6 +98,9 @@ interface RoadmapStoreState {
   setSelectedRoadmap: (id: string | null) => void
   updateWeek: (roadmapId: string, weekId: string, updates: Partial<RoadmapWeek>) => void
   updateObjective: (roadmapId: string, weekId: string, objectiveId: string, updates: Partial<RoadmapObjective>) => void
+  createObjective: (roadmapId: string, weekId: string, input: Partial<RoadmapObjective>) => void
+  deleteObjective: (roadmapId: string, weekId: string, objectiveId: string) => void
+  updateObjectiveStatus: (roadmapId: string, weekId: string, objectiveId: string, status: ObjectiveStatus, beforeId?: string) => void
   toggleChecklistItem: (roadmapId: string, weekId: string, objectiveId: string, itemId: string) => void
   reorderWeeks: (roadmapId: string, startIndex: number, endIndex: number) => void
 }
@@ -103,25 +113,28 @@ function buildDefaultObjectives(weekNumber: number, tripName: string) {
       title: `${tripName} fundamentals`,
       description: `Review the essential system knowledge and standards for Week ${weekNumber}.`,
       priority: "high" as const,
-      checklist: ["Review core documentation", "Note observations"],
-      equipment: ["Safety PPE"],
-      notes: "Capture key lessons learned.",
+    checklist: ["Review core documentation", "Note observations"],
+    equipment: ["Safety PPE"],
+      estimatedHours: 1,
+    notes: "Capture key lessons learned.",
     },
     {
       title: `Hands-on application`,
       description: `Practice the core task in a supervised setting during Week ${weekNumber}.`,
       priority: "medium" as const,
-      checklist: ["Inspect equipment", "Log findings"],
-      equipment: [tripName],
-      notes: "Record outstanding questions.",
+    checklist: ["Inspect equipment", "Log findings"],
+    equipment: [tripName],
+      estimatedHours: 1,
+    notes: "Record outstanding questions.",
     },
     {
       title: `Reflection and next steps`,
       description: `Summarize outcomes and plan the next learning focus for Week ${weekNumber}.`,
       priority: "low" as const,
-      checklist: ["Complete reflection"],
-      equipment: [],
-      notes: "Prepare to carry forward any follow-up actions.",
+    checklist: ["Complete reflection"],
+    equipment: [],
+      estimatedHours: 1,
+    notes: "Prepare to carry forward any follow-up actions.",
     },
   ]
 
@@ -129,6 +142,7 @@ function buildDefaultObjectives(weekNumber: number, tripName: string) {
     ...objective,
     checklist: objective.checklist.map((text) => ({ id: makeId(), text, done: false })),
     equipment: [...objective.equipment],
+    estimatedHours: objective.estimatedHours,
     notes: objective.notes,
     progress: 0,
     status: "not-started" as const,
@@ -152,6 +166,7 @@ function normalizeWeek(week: RoadmapWeek): RoadmapWeek {
     const progress = calculateObjectiveProgress(objective)
     return {
       ...objective,
+      estimatedHours: Math.max(0, Number(objective.estimatedHours) || 0),
       progress,
       status:
         progress === 100
@@ -178,6 +193,31 @@ function normalizeRoadmap(roadmap: RoadmapItem): RoadmapItem {
   return {
     ...roadmap,
     weeks,
+  }
+}
+
+function buildObjective(input: Partial<RoadmapObjective>): RoadmapObjective {
+  return {
+    id: input.id || makeId(),
+    title: input.title?.trim() || "New objective",
+    description: input.description?.trim() || "",
+    priority: input.priority || "medium",
+    status: input.status || "not-started",
+    checklist: (input.checklist ?? [{ id: makeId(), text: "Complete objective", done: false }]).map(
+      (item) => ({
+        id: item.id || makeId(),
+        text: item.text?.trim() || "Complete objective",
+        done: Boolean(item.done),
+      })
+    ),
+    equipment: input.equipment ?? [],
+    estimatedHours: Math.max(0, Number(input.estimatedHours) || 0),
+    notes: input.notes?.trim() || "",
+    progress: 0,
+    source: input.source,
+    journalEntryId: input.journalEntryId,
+    journalChecklistItemId: input.journalChecklistItemId,
+    dueWeekId: input.dueWeekId,
   }
 }
 
@@ -213,6 +253,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 status: "not-started" as const,
                 checklist: (objective.checklist ?? []).map((text) => ({ id: makeId(), text, done: false })),
                 equipment: objective.equipment ?? [],
+                estimatedHours: 1,
                 notes: objective.notes ?? "",
                 progress: 0,
               }))
@@ -291,6 +332,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                         })
                       : previousWeek?.objectives[objectiveIndex]?.checklist || [],
                     equipment: objective.equipment ?? [],
+                    estimatedHours: previousWeek?.objectives[objectiveIndex]?.estimatedHours ?? 1,
                     notes: objective.notes ?? "",
                     progress: 0,
                   }))
@@ -367,6 +409,61 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
         }))
       },
 
+      createObjective: (roadmapId, weekId, input) => {
+        set((state) => ({
+          roadmaps: state.roadmaps.map((roadmap) => {
+            if (roadmap.id !== roadmapId) return roadmap
+            return normalizeRoadmap({
+              ...roadmap,
+              weeks: roadmap.weeks.map((week) =>
+                week.id === weekId
+                  ? { ...week, objectives: [...week.objectives, buildObjective(input)] }
+                  : week
+              ),
+            })
+          }),
+        }))
+      },
+
+      deleteObjective: (roadmapId, weekId, objectiveId) => {
+        set((state) => ({
+          roadmaps: state.roadmaps.map((roadmap) => {
+            if (roadmap.id !== roadmapId) return roadmap
+            return normalizeRoadmap({
+              ...roadmap,
+              weeks: roadmap.weeks.map((week) =>
+                week.id === weekId
+                  ? { ...week, objectives: week.objectives.filter((objective) => objective.id !== objectiveId) }
+                  : week
+              ),
+            })
+          }),
+        }))
+      },
+
+      updateObjectiveStatus: (roadmapId, weekId, objectiveId, status, beforeId) => {
+        set((state) => ({
+          roadmaps: state.roadmaps.map((roadmap) => {
+            if (roadmap.id !== roadmapId) return roadmap
+            return normalizeRoadmap({
+              ...roadmap,
+              weeks: roadmap.weeks.map((week) => {
+                if (week.id !== weekId) return week
+                const current = week.objectives.find((objective) => objective.id === objectiveId)
+                if (!current) return week
+                const moved = applyObjectiveStatus(current, status) as RoadmapObjective
+                const objectives = week.objectives.filter((objective) => objective.id !== objectiveId)
+                const targetIndex = beforeId
+                  ? objectives.findIndex((objective) => objective.id === beforeId)
+                  : -1
+                objectives.splice(targetIndex >= 0 ? targetIndex : objectives.length, 0, moved)
+                return { ...week, objectives }
+              }),
+            })
+          }),
+        }))
+      },
+
       toggleChecklistItem: (roadmapId, weekId, objectiveId, itemId) => {
         set((state) => ({
           roadmaps: state.roadmaps.map((roadmap) => {
@@ -420,7 +517,5 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
 )
 
 export const getRoadmapProgress = (roadmap: RoadmapItem | null | undefined) => {
-  if (!roadmap) return 0
-  const total = roadmap.weeks.reduce((sum, week) => sum + week.progress, 0)
-  return roadmap.weeks.length ? Math.round(total / roadmap.weeks.length) : 0
+  return getRoadmapOverallProgress(roadmap)
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BookOpen, CalendarDays, GripVertical, Map, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { BookOpen, CalendarDays, GripVertical, Link2, Map, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react"
 import {
   getRoadmapProgress,
   useRoadmapStore,
@@ -343,11 +344,20 @@ export function RoadmapContentNew() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold">Week {week.weekNumber}</p>
                           <Badge variant="secondary">{week.tripName}</Badge>
+                          <Badge variant="outline" className="gap-1">
+                            <Link2 className="h-3 w-3" />
+                            Weekly Goals
+                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{week.title}</p>
                       </div>
                     </div>
-                    <Badge variant="outline">{week.progress}%</Badge>
+                    <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                      <Badge variant="outline">{week.progress}%</Badge>
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/calendar?week=${week.id}`}>Open Planner</Link>
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-4 space-y-3">

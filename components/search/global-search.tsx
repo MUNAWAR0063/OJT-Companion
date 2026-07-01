@@ -27,6 +27,7 @@ import { useGalleryStore } from "@/lib/gallery-store"
 import { useJournalStore } from "@/lib/journal-store"
 import { useKnowledgeStore } from "@/lib/knowledge-store"
 import { usePlannerStore } from "@/lib/planner-store"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
 import { useReportStore } from "@/lib/report-store"
 import { useRoadmapStore } from "@/lib/roadmap-store"
 import { useSearchStore } from "@/lib/search-store"
@@ -82,8 +83,9 @@ export function WorkspaceSearch({ variant = "bar" }: WorkspaceSearchProps) {
   const journalEntries = useJournalStore((state) => state.entries)
   const selectJournalEntry = useJournalStore((state) => state.selectEntry)
   const roadmaps = useRoadmapStore((state) => state.roadmaps)
+  const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
   const selectRoadmap = useRoadmapStore((state) => state.setSelectedRoadmap)
-  const plannerWeeks = usePlannerStore((state) => state.weeks)
+  const storedPlannerWeeks = usePlannerStore((state) => state.weeks)
   const selectPlannerWeek = usePlannerStore((state) => state.selectWeek)
   const documents = useDocumentStore((state) => state.documents)
   const photos = useGalleryStore((state) => state.photos)
@@ -101,6 +103,14 @@ export function WorkspaceSearch({ variant = "bar" }: WorkspaceSearchProps) {
   const equipment = useMemo(() => workspace.filter(allEquipment), [allEquipment, workspace])
   const articles = useMemo(() => workspace.filter(allArticles), [allArticles, workspace])
   const standards = useMemo(() => workspace.filter(allStandards), [allStandards, workspace])
+  const selectedRoadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0] ?? null
+  const plannerWeeks = useMemo(
+    () =>
+      (selectedRoadmap
+        ? generateWeeklyPlansFromRoadmap(selectedRoadmap)
+        : storedPlannerWeeks) as typeof storedPlannerWeeks,
+    [selectedRoadmap, storedPlannerWeeks]
+  )
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -213,7 +223,7 @@ export function WorkspaceSearch({ variant = "bar" }: WorkspaceSearchProps) {
             ]),
           ].join(" "),
           tags: [],
-          href: "/calendar",
+          href: `/calendar?week=${week.id}`,
           icon: CalendarCheck2,
           select: () => selectPlannerWeek(week.id),
         },
@@ -233,7 +243,7 @@ export function WorkspaceSearch({ variant = "bar" }: WorkspaceSearchProps) {
             ...objective.checklist.map((item) => item.text),
           ].join(" "),
           tags: [],
-          href: "/calendar",
+          href: `/calendar?week=${week.id}`,
           icon: CalendarCheck2,
           select: () => selectPlannerWeek(week.id),
         })),

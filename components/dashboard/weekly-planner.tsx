@@ -6,9 +6,15 @@ import { Calendar } from "lucide-react"
 import Link from "next/link"
 import { Progress } from "@/components/ui/progress"
 import { getPlannerProgress, usePlannerStore } from "@/lib/planner-store"
+import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
+import { useRoadmapStore } from "@/lib/roadmap-store"
 
 export function WeeklyPlanner() {
-  const weeks = usePlannerStore((state) => state.weeks)
+  const plannerWeeks = usePlannerStore((state) => state.weeks)
+  const roadmaps = useRoadmapStore((state) => state.roadmaps)
+  const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
+  const roadmap = roadmaps.find((item) => item.id === selectedRoadmapId) ?? roadmaps[0] ?? null
+  const weeks = (roadmap ? generateWeeklyPlansFromRoadmap(roadmap) : plannerWeeks) as typeof plannerWeeks
   const progress = getPlannerProgress(weeks)
   const objectiveCount = weeks.reduce((total, week) => total + week.objectives.length, 0)
 
