@@ -15,10 +15,12 @@ import { BookOpen, CalendarDays, GripVertical, Link2, Map, Pencil, Plus, Sparkle
 import {
   getRoadmapProgress,
   useRoadmapStore,
+  type RoadmapDiscipline,
   type RoadmapItem,
   type RoadmapTrip,
   type RoadmapWizardState,
 } from "@/lib/roadmap-store"
+import { generateRoadmap as buildGeneratedRoadmap, normalizeDiscipline } from "@/lib/roadmap-template-engine.mjs"
 import { getProfileDisplayName, useUserProfileStore, type UserProfile } from "@/lib/user-profile-store"
 
 const createTripDefaults = (): RoadmapTrip[] =>
@@ -52,11 +54,26 @@ const createWeekDefaults = (trips: RoadmapTrip[]) =>
   }))
 
 const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapWizardState => {
-  const trips = roadmap?.trips.length ? roadmap.trips : createTripDefaults()
+  if (!roadmap) {
+    return buildGeneratedRoadmap({
+      discipline: normalizeDiscipline(profile.discipline),
+      group: "A",
+      title: "OJT Learning Roadmap",
+      traineeName: getProfileDisplayName(profile),
+      companyName: profile.company,
+      startDate: new Date().toISOString().slice(0, 10),
+    }) as RoadmapWizardState
+  }
+
+  const trips = roadmap.trips.length ? roadmap.trips : createTripDefaults()
   return {
     title: roadmap?.title ?? "OJT Learning Roadmap",
     traineeName: getProfileDisplayName(profile),
     companyName: profile.company,
+    discipline: roadmap?.discipline ?? (normalizeDiscipline(profile.discipline) as RoadmapDiscipline),
+    group: roadmap?.group ?? "A",
+    mode: roadmap?.mode ?? "manual",
+    variationSeed: roadmap?.variationSeed,
     startDate: roadmap?.startDate ?? new Date().toISOString().slice(0, 10),
     trips,
     weeks: roadmap?.weeks.length
@@ -66,13 +83,23 @@ const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapW
           tripId: week.tripId,
           tripName: week.tripName,
           location: week.location,
+          phase: week.phase,
+          variationSeed: week.variationSeed,
+          status: week.status,
           objectives: week.objectives.map((objective) => ({
             title: objective.title,
             description: objective.description,
             priority: objective.priority,
+            category: objective.category,
+            discipline: objective.discipline,
+            difficulty: objective.difficulty,
+            siteContext: objective.siteContext,
+            siteContrast: objective.siteContrast,
+            variationSeed: objective.variationSeed,
             checklist: objective.checklist.map((item) => item.text),
             equipment: objective.equipment,
             notes: objective.notes,
+            source: objective.source === "daily_journal" ? undefined : "roadmap",
           })),
           reflection: week.reflection ?? "",
         }))
@@ -113,6 +140,23 @@ export function RoadmapContentNew() {
     setEditingId(roadmap?.id ?? null)
   }
 
+  const applyAutoTemplate = (
+    updates: Partial<Pick<RoadmapWizardState, "discipline" | "group" | "mode" | "title" | "startDate">> = {}
+  ) => {
+    setWizardState((current) => {
+      const next = { ...current, ...updates }
+      if (next.mode !== "auto") return next
+      return buildGeneratedRoadmap({
+        discipline: next.discipline,
+        group: next.group,
+        title: next.title,
+        traineeName,
+        companyName: profile.company,
+        startDate: next.startDate,
+      }) as RoadmapWizardState
+    })
+  }
+
   const openCreateWizard = () => {
     resetWizard()
     setIsWizardOpen(true)
@@ -124,7 +168,7 @@ export function RoadmapContentNew() {
   }
 
   const handleWizardSubmit = () => {
-    const nextWizardState = {
+    const nextWizardState: RoadmapWizardState = {
       ...wizardState,
       traineeName,
       companyName: profile.company,
@@ -214,6 +258,8 @@ export function RoadmapContentNew() {
                   checklist: ["Complete objective"],
                   equipment: [],
                   notes: "",
+                  source: "roadmap",
+                  category: "technical",
                 },
               ],
             }
@@ -308,6 +354,9 @@ export function RoadmapContentNew() {
               <CalendarDays className="h-3.5 w-3.5" />
               {selectedRoadmap.startDate} → {selectedRoadmap.endDate}
             </Badge>
+            <Badge variant="outline">{selectedRoadmap.discipline}</Badge>
+            <Badge variant="outline">Group {selectedRoadmap.group}</Badge>
+            <Badge variant="outline">{selectedRoadmap.mode === "auto" ? "Auto generated" : "Manual"}</Badge>
             <Badge variant="outline">{selectedRoadmap.weeks.length} weeks</Badge>
             <Badge variant="outline">{selectedRoadmap.trips.length} trips</Badge>
           </div>
@@ -344,6 +393,7 @@ export function RoadmapContentNew() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold">Week {week.weekNumber}</p>
                           <Badge variant="secondary">{week.tripName}</Badge>
+                          {week.phase && <Badge variant="outline">{week.phase}</Badge>}
                           <Badge variant="outline" className="gap-1">
                             <Link2 className="h-3 w-3" />
                             Weekly Goals
@@ -366,11 +416,18 @@ export function RoadmapContentNew() {
                         <div key={objective.id} className="rounded-lg border p-3">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-sm font-medium">{objective.title}</p>
-                            <Badge variant={objective.priority === "high" ? "default" : objective.priority === "medium" ? "secondary" : "outline"}>
-                              {objective.priority}
-                            </Badge>
+                            <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                              {objective.category && <Badge variant="outline">{objective.category}</Badge>}
+                              {objective.difficulty && <Badge variant="secondary">{objective.difficulty}</Badge>}
+                              <Badge variant={objective.priority === "high" ? "default" : objective.priority === "medium" ? "secondary" : "outline"}>
+                                {objective.priority}
+                              </Badge>
+                            </div>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">{objective.description}</p>
+                          {objective.siteContrast && (
+                            <p className="mt-1 text-xs text-muted-foreground">{objective.siteContrast}</p>
+                          )}
                           <div className="mt-2 space-y-2">
                             {objective.checklist.map((item) => (
                               <label key={item.id} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -473,9 +530,57 @@ export function RoadmapContentNew() {
                   <label className="text-sm font-medium">Roadmap title</label>
                   <Input
                     value={wizardState.title}
-                    onChange={(event) => setWizardState((current) => ({ ...current, title: event.target.value }))}
+                    onChange={(event) => applyAutoTemplate({ title: event.target.value })}
                     placeholder="OJT Learning Roadmap"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discipline</label>
+                  <Select
+                    value={wizardState.discipline}
+                    onValueChange={(value) => applyAutoTemplate({ discipline: value as RoadmapDiscipline })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select discipline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["Electrical", "Mechanical", "Instrument", "Operator", "HSE"].map((discipline) => (
+                        <SelectItem key={discipline} value={discipline}>
+                          {discipline}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Group</label>
+                  <Select
+                    value={wizardState.group}
+                    onValueChange={(value) => applyAutoTemplate({ group: value as RoadmapWizardState["group"] })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">Group A</SelectItem>
+                      <SelectItem value="B">Group B</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">Generation mode</label>
+                  <Select
+                    value={wizardState.mode}
+                    onValueChange={(value) => applyAutoTemplate({ mode: value as RoadmapWizardState["mode"] })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select generation mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto from template registry</SelectItem>
+                      <SelectItem value="manual">Manual editing</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trainee name</label>
@@ -500,7 +605,7 @@ export function RoadmapContentNew() {
                   <Input
                     type="date"
                     value={wizardState.startDate}
-                    onChange={(event) => setWizardState((current) => ({ ...current, startDate: event.target.value }))}
+                    onChange={(event) => applyAutoTemplate({ startDate: event.target.value })}
                   />
                 </div>
               </div>
@@ -660,6 +765,9 @@ export function RoadmapContentNew() {
                       <p className="text-sm text-muted-foreground">{traineeName} • {profile.company || "Company"}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">{wizardState.discipline}</Badge>
+                      <Badge variant="outline">Group {wizardState.group}</Badge>
+                      <Badge variant="outline">{wizardState.mode === "auto" ? "Auto generated" : "Manual"}</Badge>
                       <Badge variant="outline">{wizardState.weeks.length} weeks</Badge>
                       <Badge variant="outline">{wizardState.trips.length} trips</Badge>
                     </div>

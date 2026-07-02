@@ -5,9 +5,14 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import { supabaseStateStorage } from "@/lib/supabase/storage"
 import { getRoadmapOverallProgress } from "@/lib/roadmap-progress.mjs"
 import { updateObjectiveStatus as applyObjectiveStatus } from "@/lib/roadmap-planner-integration.mjs"
+import { generateRoadmap as buildGeneratedRoadmap, normalizeDiscipline, normalizeRoadmapGroup } from "@/lib/roadmap-template-engine.mjs"
 
 export type ObjectiveStatus = "not-started" | "in-progress" | "completed"
 export type ObjectivePriority = "high" | "medium" | "low" | "follow_up"
+export type RoadmapDiscipline = "Operator" | "Instrument" | "Mechanical" | "Electrical" | "HSE"
+export type RoadmapGroup = "A" | "B"
+export type RoadmapMode = "auto" | "manual"
+export type RoadmapTaskCategory = "safety" | "technical" | "operation" | "review" | "maintenance"
 
 export interface ChecklistItem {
   id: string
@@ -20,13 +25,19 @@ export interface RoadmapObjective {
   title: string
   description: string
   priority: ObjectivePriority
+  category?: RoadmapTaskCategory
+  discipline?: RoadmapDiscipline | "Common"
+  difficulty?: "basic" | "intermediate" | "advanced"
+  siteContext?: string
+  siteContrast?: string
+  variationSeed?: string
   status: ObjectiveStatus
   checklist: ChecklistItem[]
   equipment: string[]
   estimatedHours: number
   notes: string
   progress: number
-  source?: "daily_journal"
+  source?: "roadmap" | "daily_journal"
   journalEntryId?: string
   journalChecklistItemId?: string
   dueWeekId?: string
@@ -39,6 +50,9 @@ export interface RoadmapWeek {
   tripId: string
   tripName: string
   location: string
+  phase?: "foundation" | "operation" | "advanced"
+  variationSeed?: string
+  status?: ObjectiveStatus
   objectives: RoadmapObjective[]
   reflection: string
   progress: number
@@ -58,6 +72,10 @@ export interface RoadmapItem {
   title: string
   traineeName: string
   companyName: string
+  discipline: RoadmapDiscipline
+  group: RoadmapGroup
+  mode: RoadmapMode
+  variationSeed?: string
   startDate: string
   endDate: string
   trips: RoadmapTrip[]
@@ -69,6 +87,10 @@ export interface RoadmapWizardState {
   title: string
   traineeName: string
   companyName: string
+  discipline: RoadmapDiscipline
+  group: RoadmapGroup
+  mode: RoadmapMode
+  variationSeed?: string
   startDate: string
   trips: RoadmapTrip[]
   weeks: Array<{
@@ -77,13 +99,23 @@ export interface RoadmapWizardState {
     tripId: string
     tripName: string
     location: string
+    phase?: "foundation" | "operation" | "advanced"
+    variationSeed?: string
+    status?: ObjectiveStatus
     objectives: Array<{
       title: string
       description: string
       priority: ObjectivePriority
+      category?: RoadmapTaskCategory
+      discipline?: RoadmapDiscipline | "Common"
+      difficulty?: "basic" | "intermediate" | "advanced"
+      siteContext?: string
+      siteContrast?: string
+      variationSeed?: string
       checklist: string[]
       equipment: string[]
       notes: string
+      source?: "roadmap"
     }>
     reflection: string
   }>
@@ -93,6 +125,7 @@ interface RoadmapStoreState {
   roadmaps: RoadmapItem[]
   selectedRoadmapId: string | null
   createRoadmap: (input: RoadmapWizardState) => RoadmapItem
+  generateRoadmap: (input: Partial<RoadmapWizardState>) => RoadmapItem
   updateRoadmap: (id: string, input: RoadmapWizardState) => void
   deleteRoadmap: (id: string) => void
   setSelectedRoadmap: (id: string | null) => void
@@ -145,6 +178,10 @@ function buildDefaultObjectives(weekNumber: number, tripName: string) {
     estimatedHours: objective.estimatedHours,
     notes: objective.notes,
     progress: 0,
+    source: "roadmap" as const,
+    category: "technical" as const,
+    discipline: "Common" as const,
+    difficulty: "basic" as const,
     status: "not-started" as const,
     id: makeId(),
   }))
@@ -185,6 +222,7 @@ function normalizeWeek(week: RoadmapWeek): RoadmapWeek {
     ...week,
     objectives,
     progress,
+    status: progress === 100 ? "completed" : progress > 0 ? "in-progress" : "not-started",
   }
 }
 
@@ -192,6 +230,9 @@ function normalizeRoadmap(roadmap: RoadmapItem): RoadmapItem {
   const weeks = roadmap.weeks.map((week) => normalizeWeek(week))
   return {
     ...roadmap,
+    discipline: (normalizeDiscipline(roadmap.discipline) as RoadmapDiscipline) || "Electrical",
+    group: (normalizeRoadmapGroup(roadmap.group) as RoadmapGroup) || "A",
+    mode: roadmap.mode || "manual",
     weeks,
   }
 }
@@ -215,6 +256,12 @@ function buildObjective(input: Partial<RoadmapObjective>): RoadmapObjective {
     notes: input.notes?.trim() || "",
     progress: 0,
     source: input.source,
+    category: input.category,
+    discipline: input.discipline,
+    difficulty: input.difficulty,
+    siteContext: input.siteContext,
+    siteContrast: input.siteContrast,
+    variationSeed: input.variationSeed,
     journalEntryId: input.journalEntryId,
     journalChecklistItemId: input.journalChecklistItemId,
     dueWeekId: input.dueWeekId,
@@ -228,6 +275,8 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
       selectedRoadmapId: null,
 
       createRoadmap: (input) => {
+        const discipline = normalizeDiscipline(input.discipline) as RoadmapDiscipline
+        const group = normalizeRoadmapGroup(input.group) as RoadmapGroup
         const startDate = input.startDate || new Date().toISOString().slice(0, 10)
         const endDate = new Date(new Date(startDate).getTime() + (18 * 7 - 1) * 24 * 60 * 60 * 1000)
           .toISOString()
@@ -255,6 +304,13 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 equipment: objective.equipment ?? [],
                 estimatedHours: 1,
                 notes: objective.notes ?? "",
+                source: objective.source || "roadmap",
+                category: objective.category,
+                discipline: objective.discipline,
+                difficulty: objective.difficulty,
+                siteContext: objective.siteContext,
+                siteContrast: objective.siteContrast,
+                variationSeed: objective.variationSeed,
                 progress: 0,
               }))
             : buildDefaultObjectives(index + 1, trip.name)
@@ -266,6 +322,9 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
             tripId: trip.id,
             tripName: trip.name,
             location: trip.location,
+            phase: week.phase,
+            variationSeed: week.variationSeed,
+            status: week.status || "not-started",
             objectives,
             reflection: week.reflection || "",
             progress: 0,
@@ -277,6 +336,10 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
           title: input.title || "OJT Learning Roadmap",
           traineeName: input.traineeName || "Trainee",
           companyName: input.companyName || "Company",
+          discipline,
+          group,
+          mode: input.mode || "manual",
+          variationSeed: input.variationSeed,
           startDate,
           endDate,
           trips,
@@ -292,11 +355,22 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
         return roadmap
       },
 
+      generateRoadmap: (input) => {
+        const generated = buildGeneratedRoadmap({
+          ...input,
+          discipline: input.discipline,
+          group: input.group,
+        }) as RoadmapWizardState
+        return get().createRoadmap(generated)
+      },
+
       updateRoadmap: (id, input) => {
         set((state) => ({
           roadmaps: state.roadmaps.map((roadmap) => {
             if (roadmap.id !== id) return roadmap
 
+            const discipline = normalizeDiscipline(input.discipline) as RoadmapDiscipline
+            const group = normalizeRoadmapGroup(input.group) as RoadmapGroup
             const startDate = input.startDate || roadmap.startDate
             const endDate = input.startDate
               ? new Date(new Date(input.startDate).getTime() + (18 * 7 - 1) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -334,6 +408,13 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                     equipment: objective.equipment ?? [],
                     estimatedHours: previousWeek?.objectives[objectiveIndex]?.estimatedHours ?? 1,
                     notes: objective.notes ?? "",
+                    source: objective.source || previousWeek?.objectives[objectiveIndex]?.source || "roadmap",
+                    category: objective.category || previousWeek?.objectives[objectiveIndex]?.category,
+                    discipline: objective.discipline || previousWeek?.objectives[objectiveIndex]?.discipline,
+                    difficulty: objective.difficulty || previousWeek?.objectives[objectiveIndex]?.difficulty,
+                    siteContext: objective.siteContext || previousWeek?.objectives[objectiveIndex]?.siteContext,
+                    siteContrast: objective.siteContrast || previousWeek?.objectives[objectiveIndex]?.siteContrast,
+                    variationSeed: objective.variationSeed || previousWeek?.objectives[objectiveIndex]?.variationSeed,
                     progress: 0,
                   }))
                 : previousWeek?.objectives || buildDefaultObjectives(index + 1, trip.name)
@@ -345,6 +426,9 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 tripId: trip.id,
                 tripName: trip.name,
                 location: trip.location,
+                phase: week.phase,
+                variationSeed: week.variationSeed,
+                status: week.status || previousWeek?.status || "not-started",
                 objectives,
                 reflection: week.reflection || previousWeek?.reflection || "",
                 progress: 0,
@@ -356,6 +440,10 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
               title: input.title || roadmap.title,
               traineeName: input.traineeName || roadmap.traineeName,
               companyName: input.companyName || roadmap.companyName,
+              discipline,
+              group,
+              mode: input.mode || roadmap.mode || "manual",
+              variationSeed: input.variationSeed || roadmap.variationSeed,
               startDate,
               endDate,
               trips,

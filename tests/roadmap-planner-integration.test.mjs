@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   generateWeeklyPlansFromRoadmap,
+  getWeekStatus,
   recalculateRoadmapProgress,
   recalculateWeekProgress,
   updateObjectiveStatus,
@@ -59,6 +60,8 @@ test("progress is recalculated from objective checklist completion", () => {
   assert.equal(recalculateWeekProgress(roadmap.weeks[0]), 50)
   assert.equal(recalculateWeekProgress(roadmap.weeks[1]), 100)
   assert.equal(recalculateRoadmapProgress(roadmap), 75)
+  assert.equal(getWeekStatus(roadmap.weeks[0]), "in-progress")
+  assert.equal(getWeekStatus(roadmap.weeks[1]), "completed")
 })
 
 test("updateObjectiveStatus moves checklist completion with the status", () => {
