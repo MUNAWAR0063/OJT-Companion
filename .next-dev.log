@@ -847,3 +847,8 @@ Creating turbopack project {
  ✓ Compiled in 559ms
  ✓ Compiled in 681ms
  GET /learning/roadmap 200 in 1656ms (compile: 791ms, proxy.ts: 713ms, render: 152ms)
+ GET /learning/roadmap 200 in 2.3s (compile: 23ms, proxy.ts: 1278ms, render: 964ms)
+ GET /calendar 200 in 1749ms (compile: 535ms, proxy.ts: 661ms, render: 553ms)
+ GET /dashboard 200 in 2.8s (compile: 1517ms, proxy.ts: 1043ms, render: 257ms)
+ GET /calendar 200 in 815ms (compile: 40ms, proxy.ts: 683ms, render: 93ms)
+ GET /learning/roadmap 200 in 497ms (compile: 20ms, proxy.ts: 347ms, render: 129ms)
