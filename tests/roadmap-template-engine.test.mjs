@@ -83,6 +83,127 @@ test("generateVariation mixes required categories and changes sequence by seed",
   assert.ok(first.every((task) => task.difficulty === "intermediate"))
 })
 
+test("generated checklists are built from Excel UC activities and vary across weeks", () => {
+  const roadmap = generateRoadmap({
+    discipline: "Electrical Technician",
+    group: "A",
+    startDate: "2026-07-01",
+    seed: "electrical-a",
+  })
+  const checklistTexts = roadmap.weeks.flatMap((week) =>
+    week.objectives.flatMap((objective) => objective.checklist)
+  )
+  const week4Checklist = roadmap.weeks[3].objectives.flatMap((objective) => objective.checklist)
+  const week5Checklist = roadmap.weeks[4].objectives.flatMap((objective) => objective.checklist)
+
+  assert.ok(checklistTexts.some((item) => item.includes("SLD")))
+  assert.ok(checklistTexts.some((item) => item.includes("relay") || item.includes("IR test")))
+  assert.ok(checklistTexts.some((item) => item.includes("LOTO")))
+  assert.ok(checklistTexts.some((item) => item.includes("Transformer") || item.includes("transformer")))
+  assert.notDeepEqual(week4Checklist, week5Checklist)
+  assert.ok(roadmap.weeks.flatMap((week) => week.objectives).every((objective) => objective.code))
+})
+
+test("generated roadmap only uses selected discipline and common competencies", () => {
+  for (const discipline of ["Operator", "Instrument", "Mechanical", "Electrical"]) {
+    const roadmap = generateRoadmap({
+      discipline,
+      group: "A",
+      startDate: "2026-07-01",
+      seed: `${discipline.toLowerCase()}-strict`,
+    })
+    const disciplines = new Set(
+      roadmap.weeks.flatMap((week) => week.objectives.map((objective) => objective.discipline))
+    )
+
+    assert.deepEqual(disciplines, new Set([discipline, "Common"]))
+  }
+})
+
+test("selected discipline competency units are completed once per site", () => {
+  const expectedCodesByDiscipline = {
+    Operator: ["UC1", "UC2", "UC3", "UC4", "UC5"],
+    Instrument: ["UC1", "UC2", "UC3", "UC4", "UC5"],
+    Mechanical: ["UC1", "UC2", "UC3", "UC4", "UC5"],
+    Electrical: ["E1", "E2", "E3", "E4", "E5"],
+    HSE: ["G1", "G2", "UC1", "UC2", "UC3", "UC4", "UC5"],
+  }
+
+  for (const [discipline, expectedCodes] of Object.entries(expectedCodesByDiscipline)) {
+    const roadmap = generateRoadmap({
+      discipline,
+      group: "A",
+      startDate: "2026-07-01",
+      seed: `${discipline.toLowerCase()}-site-coverage`,
+    })
+
+    for (const site of ["Grissik", "Sokka"]) {
+      const actualCodes = new Set(
+        roadmap.weeks
+          .filter((week) => week.location === site)
+          .flatMap((week) =>
+            week.objectives
+              .filter((objective) => objective.discipline === discipline)
+              .map((objective) => objective.code)
+          )
+      )
+
+      assert.deepEqual(actualCodes, new Set(expectedCodes), `${discipline} coverage at ${site}`)
+    }
+  }
+})
+
+test("electrical roadmap follows the focused 9-week site block example", () => {
+  const roadmap = generateRoadmap({
+    discipline: "Electrical Technician",
+    group: "A",
+    startDate: "2026-07-01",
+    seed: "electrical-focused-block",
+  })
+  const expectedBlock = [
+    ["G1", "G2"],
+    ["UC1", "UC2"],
+    ["UC3", "UC4", "UC5"],
+    ["E1"],
+    ["E2"],
+    ["E3"],
+    ["E4"],
+    ["E5"],
+    ["RECAP"],
+  ]
+
+  assert.deepEqual(
+    roadmap.weeks.slice(0, 9).map((week) => week.objectives.map((objective) => objective.code)),
+    expectedBlock
+  )
+  assert.deepEqual(
+    roadmap.weeks.slice(9, 18).map((week) => week.objectives.map((objective) => objective.code)),
+    expectedBlock
+  )
+  assert.ok(roadmap.weeks[6].objectives[0].title.includes("Transformer"))
+})
+
+test("non-electrical disciplines focus one competency at a time in weeks 4 to 8", () => {
+  for (const discipline of ["Operator", "Instrument", "Mechanical"]) {
+    const roadmap = generateRoadmap({
+      discipline,
+      group: "B",
+      startDate: "2026-07-01",
+      seed: `${discipline.toLowerCase()}-focused-block`,
+    })
+
+    assert.deepEqual(
+      roadmap.weeks.slice(3, 8).map((week) =>
+        week.objectives
+          .filter((objective) => objective.discipline === discipline)
+          .map((objective) => objective.code)
+      ),
+      [["UC1"], ["UC2"], ["UC3"], ["UC4"], ["UC5"]]
+    )
+    assert.ok(roadmap.weeks.slice(3, 8).every((week) => week.objectives.length === 1))
+  }
+})
+
 test("parseTemplateRows loads Excel-converted category rows without duplicate task titles", () => {
   const registry = parseTemplateRows([
     {

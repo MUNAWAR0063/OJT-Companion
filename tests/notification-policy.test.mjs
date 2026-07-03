@@ -20,6 +20,7 @@ test("getCurrentOjtWeek clamps the week to the configured OJT window", () => {
   assert.equal(getCurrentOjtWeek("2026-07-01", 18, new Date("2026-07-01")), 1)
   assert.equal(getCurrentOjtWeek("2026-07-01", 18, new Date("2026-07-08")), 2)
   assert.equal(getCurrentOjtWeek("2026-07-01", 18, new Date("2027-01-01")), 18)
+  assert.equal(getCurrentOjtWeek("2026-07-01", 16, new Date("2026-10-28")), 18)
 })
 
 test("buildCurrentRoadmapChecklistNotification only reports the active week", () => {
@@ -47,6 +48,21 @@ test("buildCurrentRoadmapChecklistNotification only reports the active week", ()
 
   assert.equal(weekTwoNotification.weekNumber, 2)
   assert.equal(weekTwoNotification.fingerprint, "roadmap-checklist-roadmap-1-week-2")
+})
+
+test("buildCurrentRoadmapChecklistNotification supports the full 18 week OJT window", () => {
+  const weekEighteenNotification = buildCurrentRoadmapChecklistNotification({
+    roadmap: {
+      id: "roadmap-18",
+      startDate: "2026-07-01",
+      weeks: Array.from({ length: 18 }, (_, index) => makeWeek(index + 1, index !== 17)),
+    },
+    now: new Date("2026-10-28"),
+    fallbackTotalWeeks: 16,
+  })
+
+  assert.equal(weekEighteenNotification.weekNumber, 18)
+  assert.equal(weekEighteenNotification.fingerprint, "roadmap-checklist-roadmap-18-week-18")
 })
 
 test("reconcileRoadmapChecklistNotifications removes stale roadmap checklist notifications", () => {

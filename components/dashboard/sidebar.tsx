@@ -48,12 +48,12 @@ const isGroup = (entry: NavEntry): entry is NavGroup => "children" in entry
 
 const navEntries: NavEntry[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: CalendarRange, label: "Weekly Planner", href: "/calendar" },
+  { icon: Map, label: "Learning Roadmap", href: "/learning/roadmap" },
   {
     icon: GraduationCap,
     label: "Learning",
     children: [
-      { icon: Map, label: "Learning Roadmap", href: "/learning/roadmap" },
+      { icon: CalendarRange, label: "Weekly Planner", href: "/calendar" },
       { icon: NotebookPen, label: "Daily Journal", href: "/team" },
     ],
   },

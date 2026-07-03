@@ -22,6 +22,7 @@ export interface ChecklistItem {
 
 export interface RoadmapObjective {
   id: string
+  code?: string
   title: string
   description: string
   priority: ObjectivePriority
@@ -31,6 +32,8 @@ export interface RoadmapObjective {
   siteContext?: string
   siteContrast?: string
   variationSeed?: string
+  subjects?: string[]
+  activities?: string[]
   status: ObjectiveStatus
   checklist: ChecklistItem[]
   equipment: string[]
@@ -106,12 +109,15 @@ export interface RoadmapWizardState {
       title: string
       description: string
       priority: ObjectivePriority
+      code?: string
       category?: RoadmapTaskCategory
       discipline?: RoadmapDiscipline | "Common"
       difficulty?: "basic" | "intermediate" | "advanced"
       siteContext?: string
       siteContrast?: string
       variationSeed?: string
+      subjects?: string[]
+      activities?: string[]
       checklist: string[]
       equipment: string[]
       notes: string
@@ -139,6 +145,14 @@ interface RoadmapStoreState {
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10)
+const OJT_TOTAL_WEEKS = 18
+const WEEKS_PER_TRIP = 3
+
+function getRoadmapEndDate(startDate: string) {
+  return new Date(new Date(startDate).getTime() + (OJT_TOTAL_WEEKS * 7 - 1) * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10)
+}
 
 function buildDefaultObjectives(weekNumber: number, tripName: string) {
   const baseObjectives = [
@@ -179,9 +193,12 @@ function buildDefaultObjectives(weekNumber: number, tripName: string) {
     notes: objective.notes,
     progress: 0,
     source: "roadmap" as const,
+    code: "",
     category: "technical" as const,
     discipline: "Common" as const,
     difficulty: "basic" as const,
+    subjects: [],
+    activities: [],
     status: "not-started" as const,
     id: makeId(),
   }))
@@ -196,6 +213,34 @@ function calculateObjectiveProgress(objective: RoadmapObjective) {
   if (objective.status === "completed") return 100
   if (objective.status === "in-progress") return 50
   return 0
+}
+
+function buildGeneratedObjective(
+  objective: RoadmapWizardState["weeks"][number]["objectives"][number],
+  objectiveIndex: number
+): RoadmapObjective {
+  return {
+    id: makeId(),
+    title: objective.title || `Objective ${objectiveIndex + 1}`,
+    code: objective.code,
+    description: objective.description || "Working objective for this week.",
+    priority: objective.priority || "medium",
+    status: "not-started",
+    checklist: (objective.checklist ?? []).map((text) => ({ id: makeId(), text, done: false })),
+    equipment: objective.equipment ?? [],
+    estimatedHours: 1,
+    notes: objective.notes ?? "",
+    source: objective.source || "roadmap",
+    category: objective.category,
+    discipline: objective.discipline,
+    difficulty: objective.difficulty,
+    siteContext: objective.siteContext,
+    siteContrast: objective.siteContrast,
+    variationSeed: objective.variationSeed,
+    subjects: objective.subjects,
+    activities: objective.activities,
+    progress: 0,
+  }
 }
 
 function normalizeWeek(week: RoadmapWeek): RoadmapWeek {
@@ -227,12 +272,61 @@ function normalizeWeek(week: RoadmapWeek): RoadmapWeek {
 }
 
 function normalizeRoadmap(roadmap: RoadmapItem): RoadmapItem {
-  const weeks = roadmap.weeks.map((week) => normalizeWeek(week))
+  const discipline = (normalizeDiscipline(roadmap.discipline) as RoadmapDiscipline) || "Electrical"
+  const group = (normalizeRoadmapGroup(roadmap.group) as RoadmapGroup) || "A"
+  const generated = buildGeneratedRoadmap({
+    title: roadmap.title,
+    traineeName: roadmap.traineeName,
+    companyName: roadmap.companyName,
+    discipline,
+    group,
+    startDate: roadmap.startDate,
+    seed: roadmap.variationSeed || `${roadmap.id}-week-normalization`,
+  }) as RoadmapWizardState
+  const generatedTrips = generated.trips
+  const trips = (roadmap.trips?.length ? roadmap.trips : generatedTrips).slice(0, 6).map((trip, index) => ({
+    id: trip.id || generatedTrips[index]?.id || makeId(),
+    tripNumber: index + 1,
+    name: trip.name || generatedTrips[index]?.name || `Trip ${index + 1}`,
+    location: trip.location || generatedTrips[index]?.location || "Site location",
+    focus: trip.focus || generatedTrips[index]?.focus || "Core training",
+    description: trip.description || generatedTrips[index]?.description || "Training focus for this rotation.",
+  }))
+  const existingWeeks = Array.isArray(roadmap.weeks) ? roadmap.weeks.slice(0, OJT_TOTAL_WEEKS) : []
+  const weeks = Array.from({ length: OJT_TOTAL_WEEKS }, (_, index) => {
+    const weekNumber = index + 1
+    const existingWeek =
+      existingWeeks.find((week) => Number(week.weekNumber) === weekNumber) ?? existingWeeks[index]
+    if (existingWeek) return normalizeWeek({ ...existingWeek, weekNumber })
+
+    const generatedWeek = generated.weeks[index]
+    const trip = trips[Math.min(Math.floor(index / WEEKS_PER_TRIP), trips.length - 1)]
+    return normalizeWeek({
+      id: makeId(),
+      weekNumber,
+      title: generatedWeek?.title || `Week ${weekNumber}`,
+      tripId: trip.id,
+      tripName: trip.name,
+      location: trip.location,
+      phase: generatedWeek?.phase,
+      variationSeed: generatedWeek?.variationSeed,
+      status: "not-started",
+      objectives: generatedWeek?.objectives?.length
+        ? generatedWeek.objectives.map((objective, objectiveIndex) =>
+            buildGeneratedObjective(objective, objectiveIndex)
+          )
+        : buildDefaultObjectives(weekNumber, trip.name),
+      reflection: "",
+      progress: 0,
+    })
+  })
   return {
     ...roadmap,
-    discipline: (normalizeDiscipline(roadmap.discipline) as RoadmapDiscipline) || "Electrical",
-    group: (normalizeRoadmapGroup(roadmap.group) as RoadmapGroup) || "A",
+    discipline,
+    group,
     mode: roadmap.mode || "manual",
+    endDate: roadmap.startDate ? getRoadmapEndDate(roadmap.startDate) : roadmap.endDate,
+    trips,
     weeks,
   }
 }
@@ -240,6 +334,7 @@ function normalizeRoadmap(roadmap: RoadmapItem): RoadmapItem {
 function buildObjective(input: Partial<RoadmapObjective>): RoadmapObjective {
   return {
     id: input.id || makeId(),
+    code: input.code,
     title: input.title?.trim() || "New objective",
     description: input.description?.trim() || "",
     priority: input.priority || "medium",
@@ -262,6 +357,8 @@ function buildObjective(input: Partial<RoadmapObjective>): RoadmapObjective {
     siteContext: input.siteContext,
     siteContrast: input.siteContrast,
     variationSeed: input.variationSeed,
+    subjects: input.subjects,
+    activities: input.activities,
     journalEntryId: input.journalEntryId,
     journalChecklistItemId: input.journalChecklistItemId,
     dueWeekId: input.dueWeekId,
@@ -297,6 +394,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
             ? week.objectives.map((objective, objectiveIndex) => ({
                 id: makeId(),
                 title: objective.title || `Objective ${objectiveIndex + 1}`,
+                code: objective.code,
                 description: objective.description || "Working objective for this week.",
                 priority: objective.priority || "medium",
                 status: "not-started" as const,
@@ -311,6 +409,8 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 siteContext: objective.siteContext,
                 siteContrast: objective.siteContrast,
                 variationSeed: objective.variationSeed,
+                subjects: objective.subjects,
+                activities: objective.activities,
                 progress: 0,
               }))
             : buildDefaultObjectives(index + 1, trip.name)
@@ -392,6 +492,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 ? week.objectives.map((objective, objectiveIndex) => ({
                     id: previousWeek?.objectives[objectiveIndex]?.id || makeId(),
                     title: objective.title || `Objective ${objectiveIndex + 1}`,
+                    code: objective.code || previousWeek?.objectives[objectiveIndex]?.code,
                     description: objective.description || "Working objective for this week.",
                     priority: objective.priority || "medium",
                     status: previousWeek?.objectives[objectiveIndex]?.status || "not-started",
@@ -415,6 +516,8 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                     siteContext: objective.siteContext || previousWeek?.objectives[objectiveIndex]?.siteContext,
                     siteContrast: objective.siteContrast || previousWeek?.objectives[objectiveIndex]?.siteContrast,
                     variationSeed: objective.variationSeed || previousWeek?.objectives[objectiveIndex]?.variationSeed,
+                    subjects: objective.subjects || previousWeek?.objectives[objectiveIndex]?.subjects,
+                    activities: objective.activities || previousWeek?.objectives[objectiveIndex]?.activities,
                     progress: 0,
                   }))
                 : previousWeek?.objectives || buildDefaultObjectives(index + 1, trip.name)
@@ -600,6 +703,15 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
         roadmaps: state.roadmaps,
         selectedRoadmapId: state.selectedRoadmapId,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<RoadmapStoreState> | undefined
+        return {
+          ...currentState,
+          ...persisted,
+          roadmaps: (persisted?.roadmaps ?? []).map((roadmap) => normalizeRoadmap(roadmap)),
+          selectedRoadmapId: persisted?.selectedRoadmapId ?? currentState.selectedRoadmapId,
+        }
+      },
     }
   )
 )

@@ -19629,3 +19629,57 @@ Import traces:
 https://nextjs.org/docs/messages/module-not-found
 
 
+D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+D:\OJT Companion\engineering-cards-creation\node_modules\.pnpm\next@16.0.10_@babel+core@7.29.7_react-dom@19.2.0_react@19.2.0__react@19.2.0\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ ReferenceError: commonCompetencies is not defined
+    at <unknown> (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3641:36)
+    at Array.map (<anonymous>)
+    at buildDefaultRegistry (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3639:57)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3651:46)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:228:20)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3829:163)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:228:20)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:5193:149)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:249:12) {
+  digest: '945419020'
+}
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload when ./lib/roadmap-template-engine.mjs changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+D:\OJT Companion\engineering-cards-creation\node_modules\.pnpm\next@16.0.10_@babel+core@7.29.7_react-dom@19.2.0_react@19.2.0__react@19.2.0\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ ReferenceError: commonCompetencies is not defined
+    at <unknown> (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3647:36)
+    at Array.map (<anonymous>)
+    at buildDefaultRegistry (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3645:57)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3657:46)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:228:20)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:3835:163)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:228:20)
+    at module evaluation (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[root-of-the-server]__def1845e._.js:5199:149)
+    at instantiateModule (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (D:\OJT Companion\engineering-cards-creation\.next\dev\server\chunks\ssr\[turbopack]_runtime.js:249:12) {
+  digest: '945419020'
+}
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload when ./lib/roadmap-template-engine.mjs changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Server is approaching the used memory threshold, restarting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`

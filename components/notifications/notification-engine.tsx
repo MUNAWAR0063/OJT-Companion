@@ -9,11 +9,14 @@ import { useKnowledgeStore } from "@/lib/knowledge-store"
 import { useNotificationStore, type NotificationCandidate } from "@/lib/notification-store"
 import { usePlannerStore } from "@/lib/planner-store"
 import { useRoadmapStore } from "@/lib/roadmap-store"
-import { buildCurrentRoadmapChecklistNotification } from "@/lib/notification-policy.mjs"
+import { DEFAULT_OJT_TOTAL_WEEKS, buildCurrentRoadmapChecklistNotification } from "@/lib/notification-policy.mjs"
 import { generateWeeklyPlansFromRoadmap } from "@/lib/roadmap-planner-integration.mjs"
 
 const configuredStartDate = process.env.NEXT_PUBLIC_OJT_START_DATE || "2026-07-01"
-const configuredTotalWeeks = Number(process.env.NEXT_PUBLIC_OJT_TOTAL_WEEKS) || 18
+const configuredTotalWeeks = Math.max(
+  DEFAULT_OJT_TOTAL_WEEKS,
+  Number(process.env.NEXT_PUBLIC_OJT_TOTAL_WEEKS) || DEFAULT_OJT_TOTAL_WEEKS
+)
 
 const localDateKey = (date = new Date()) => {
   const pad = (value: number) => String(value).padStart(2, "0")

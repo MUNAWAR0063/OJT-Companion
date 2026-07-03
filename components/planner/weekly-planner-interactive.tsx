@@ -8,6 +8,7 @@ import {
   Clock3,
   Edit2,
   GripVertical,
+  MapPin,
   Package,
   Plus,
   Search,
@@ -73,7 +74,7 @@ const priorityLabels: Record<PlannerPriority, string> = {
 const emptyObjective: ObjectiveInput = {
   title: "",
   description: "",
-  checklist: ["Complete objective"],
+  checklist: ["Complete task"],
   priority: "medium",
   status: "not-started",
   equipment: [],
@@ -164,6 +165,7 @@ export function WeeklyPlannerInteractive() {
   const [objectiveForm, setObjectiveForm] = useState<ObjectiveInput>(emptyObjective)
   const [search, setSearch] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<PlannerPriority | "all">("all")
+  const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [equipmentFilter, setEquipmentFilter] = useState("all")
   const [sort, setSort] = useState("manual")
   const [draggedId, setDraggedId] = useState<string | null>(null)
@@ -174,12 +176,25 @@ export function WeeklyPlannerInteractive() {
     [selectedWeek]
   )
 
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (selectedWeek?.objectives ?? []).flatMap((objective) =>
+            objective.category ? [objective.category] : []
+          )
+        )
+      ).sort(),
+    [selectedWeek]
+  )
+
   const visibleObjectives = useMemo(() => {
     if (!selectedWeek) return []
     const query = search.trim().toLowerCase()
     const result = selectedWeek.objectives.filter(
       (objective) =>
         (priorityFilter === "all" || objective.priority === priorityFilter) &&
+        (categoryFilter === "all" || objective.category === categoryFilter) &&
         (equipmentFilter === "all" || objective.equipment.includes(equipmentFilter)) &&
         (!query ||
           objective.title.toLowerCase().includes(query) ||
@@ -192,7 +207,7 @@ export function WeeklyPlannerInteractive() {
     if (sort === "hours") result.sort((a, b) => (b.estimatedHours ?? 1) - (a.estimatedHours ?? 1))
     if (sort === "title") result.sort((a, b) => a.title.localeCompare(b.title))
     return result
-  }, [equipmentFilter, priorityFilter, search, selectedWeek, sort])
+  }, [categoryFilter, equipmentFilter, priorityFilter, search, selectedWeek, sort])
 
   useEffect(() => {
     if (selectedWeek && selectedWeek.id !== selectedWeekId) selectWeek(selectedWeek.id)
@@ -230,17 +245,17 @@ export function WeeklyPlannerInteractive() {
 
   const saveObjective = () => {
     if (!roadmap || !selectedWeek || !objectiveForm.title.trim()) {
-      toast.error("Objective title is required")
+      toast.error("Task title is required")
       return
     }
     const existingObjective = selectedWeek.objectives.find((objective) => objective.id === editingObjectiveId)
     const input = objectiveInputToRoadmap(objectiveForm, existingObjective)
     if (editingObjectiveId) {
       updateRoadmapObjective(roadmap.id, selectedWeek.id, editingObjectiveId, input)
-      toast.success("Objective updated")
+      toast.success("Task updated")
     } else {
       createRoadmapObjective(roadmap.id, selectedWeek.id, input)
-      toast.success("Objective created")
+      toast.success("Task created")
     }
     setObjectiveDialogOpen(false)
   }
@@ -248,7 +263,7 @@ export function WeeklyPlannerInteractive() {
   const removeObjective = (objective: LinkedPlannerObjective) => {
     if (!roadmap || !selectedWeek || !window.confirm(`Delete "${objective.title}"?`)) return
     deleteRoadmapObjective(roadmap.id, selectedWeek.id, objective.id)
-    toast.success("Objective deleted")
+    toast.success("Task deleted")
   }
 
   const handleDrop = (status: PlannerStatus, beforeId?: string) => {
@@ -300,10 +315,15 @@ export function WeeklyPlannerInteractive() {
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{selectedWeek.title}</CardTitle>
                     <Badge variant="outline">Week {selectedWeek.weekNumber}</Badge>
-                    <Badge variant="secondary">Linked to Roadmap</Badge>
+                    <Badge variant="secondary">Weekly Focus Mode</Badge>
+                    <Badge variant="outline" className="gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {selectedWeek.location}
+                    </Badge>
+                    <Badge variant="outline">{selectedWeek.tripName}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Changes update the active Learning Roadmap and are saved to Supabase.
+                    This is the execution layer. Update tasks, checklists, and follow-ups here.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -318,7 +338,7 @@ export function WeeklyPlannerInteractive() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span>{selectedWeek.objectives.length} objectives</span>
+                  <span>{selectedWeek.objectives.length} tasks</span>
                   <span className="font-medium">{selectedWeek.progress}% complete</span>
                 </div>
                 <Progress value={selectedWeek.progress} />
@@ -349,11 +369,13 @@ export function WeeklyPlannerInteractive() {
                         className="h-auto min-w-24 shrink-0 flex-col items-start gap-1 px-3 py-2"
                         onClick={() => {
                           selectWeek(week.id)
+                          setCategoryFilter("all")
                           setEquipmentFilter("all")
                           setSearch("")
                         }}
                       >
                         <span className="text-xs font-medium">Week {week.weekNumber}</span>
+                        <span className="max-w-20 truncate text-[11px] opacity-80">{week.location}</span>
                         <span className="max-w-20 truncate text-[11px] opacity-80">{week.progress}% complete</span>
                       </Button>
                     )
@@ -369,10 +391,10 @@ export function WeeklyPlannerInteractive() {
                 className="pl-9"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search objectives..."
+                placeholder="Search tasks..."
               />
             </div>
-            <div className="grid shrink-0 grid-cols-3 gap-2 sm:gap-3 lg:flex lg:justify-end">
+            <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:flex lg:justify-end">
               <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PlannerPriority | "all")}>
                 <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Filter by priority"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -381,6 +403,15 @@ export function WeeklyPlannerInteractive() {
                   <SelectItem value="high">High priority</SelectItem>
                   <SelectItem value="medium">Medium priority</SelectItem>
                   <SelectItem value="low">Low priority</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Filter by category"><SelectValue placeholder="Category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
@@ -393,7 +424,7 @@ export function WeeklyPlannerInteractive() {
                 </SelectContent>
               </Select>
               <Select value={sort} onValueChange={setSort}>
-                <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Sort objectives"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full min-w-0 text-xs sm:w-44 sm:text-sm" aria-label="Sort tasks"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manual">Manual order</SelectItem>
                   <SelectItem value="priority">Priority</SelectItem>
@@ -459,6 +490,16 @@ export function WeeklyPlannerInteractive() {
                             </div>
 
                             <div className="flex flex-wrap gap-2">
+                              {objective.code && (
+                                <Badge variant="outline" className="font-mono">
+                                  {objective.code}
+                                </Badge>
+                              )}
+                              {objective.category && (
+                                <Badge variant="secondary" className="capitalize">
+                                  {objective.category}
+                                </Badge>
+                              )}
                               <Badge variant="outline" className={priorityStyles[objective.priority]}>
                                 {priorityLabels[objective.priority]}
                               </Badge>
@@ -519,7 +560,7 @@ export function WeeklyPlannerInteractive() {
                       ))}
                       {objectives.length === 0 && (
                         <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
-                          No matching objectives
+                          No matching tasks
                         </div>
                       )}
                     </div>
@@ -590,11 +631,11 @@ export function WeeklyPlannerInteractive() {
       <Dialog open={objectiveDialogOpen} onOpenChange={setObjectiveDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingObjectiveId ? "Edit Objective" : "Create Objective"}</DialogTitle>
+            <DialogTitle>{editingObjectiveId ? "Edit Task" : "Create Task"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
-              <label className="text-sm font-medium">Objective</label>
+              <label className="text-sm font-medium">Task</label>
               <Input
                 value={objectiveForm.title}
                 onChange={(event) => setObjectiveForm((current) => ({ ...current, title: event.target.value }))}
@@ -689,7 +730,7 @@ export function WeeklyPlannerInteractive() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setObjectiveDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveObjective}>{editingObjectiveId ? "Save Changes" : "Create Objective"}</Button>
+            <Button onClick={saveObjective}>{editingObjectiveId ? "Save Changes" : "Create Task"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

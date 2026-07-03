@@ -9,15 +9,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BookOpen, CalendarDays, GripVertical, Link2, Map, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Map, Pencil, Plus, Sparkles, Trash2 } from "lucide-react"
 import {
   getRoadmapProgress,
   useRoadmapStore,
   type RoadmapDiscipline,
   type RoadmapItem,
   type RoadmapTrip,
+  type RoadmapWeek,
   type RoadmapWizardState,
 } from "@/lib/roadmap-store"
 import { generateRoadmap as buildGeneratedRoadmap, normalizeDiscipline } from "@/lib/roadmap-template-engine.mjs"
@@ -40,29 +40,30 @@ const createWeekDefaults = (trips: RoadmapTrip[]) =>
     tripId: trips[Math.min(Math.floor(index / 3), trips.length - 1)].id,
     tripName: trips[Math.min(Math.floor(index / 3), trips.length - 1)].name,
     location: trips[Math.min(Math.floor(index / 3), trips.length - 1)].location,
-    objectives: [
-      {
-        title: "Core objective",
-        description: "Complete the week’s key training activity.",
-        priority: "high" as const,
-        checklist: ["Review the standard", "Log the observation"],
-        equipment: ["Safety PPE"],
-        notes: "Capture any follow-up actions.",
-      },
-    ],
+    objectives: [],
     reflection: "",
   }))
 
+const AUTOMATIC_ROADMAP_START_DATE = "2026-07-09"
+
+const buildManualWizardState = (profile: UserProfile): RoadmapWizardState => {
+  const trips = createTripDefaults()
+  return {
+    title: "OJT Learning Roadmap",
+    traineeName: getProfileDisplayName(profile),
+    companyName: profile.company,
+    discipline: normalizeDiscipline(profile.discipline) as RoadmapDiscipline,
+    group: "A",
+    mode: "manual",
+    startDate: new Date().toISOString().slice(0, 10),
+    trips,
+    weeks: createWeekDefaults(trips),
+  }
+}
+
 const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapWizardState => {
   if (!roadmap) {
-    return buildGeneratedRoadmap({
-      discipline: normalizeDiscipline(profile.discipline),
-      group: "A",
-      title: "OJT Learning Roadmap",
-      traineeName: getProfileDisplayName(profile),
-      companyName: profile.company,
-      startDate: new Date().toISOString().slice(0, 10),
-    }) as RoadmapWizardState
+    return buildManualWizardState(profile)
   }
 
   const trips = roadmap.trips.length ? roadmap.trips : createTripDefaults()
@@ -87,6 +88,7 @@ const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapW
           variationSeed: week.variationSeed,
           status: week.status,
           objectives: week.objectives.map((objective) => ({
+            code: objective.code,
             title: objective.title,
             description: objective.description,
             priority: objective.priority,
@@ -96,6 +98,8 @@ const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapW
             siteContext: objective.siteContext,
             siteContrast: objective.siteContrast,
             variationSeed: objective.variationSeed,
+            subjects: objective.subjects,
+            activities: objective.activities,
             checklist: objective.checklist.map((item) => item.text),
             equipment: objective.equipment,
             notes: objective.notes,
@@ -109,23 +113,57 @@ const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapW
 
 const wizardSteps = ["OJT Information", "Trip Configuration", "Week Configuration", "Generate Roadmap"]
 
+function getTripWeekSummary(roadmap: RoadmapItem, trip: RoadmapTrip) {
+  const weeks = roadmap.weeks.filter((week) => week.tripId === trip.id)
+  const sortedWeeks = [...weeks].sort((left, right) => left.weekNumber - right.weekNumber)
+  const progress = sortedWeeks.length
+    ? Math.round(sortedWeeks.reduce((total, week) => total + week.progress, 0) / sortedWeeks.length)
+    : 0
+
+  return {
+    weekRange: sortedWeeks.length
+      ? `Week ${sortedWeeks[0].weekNumber}-${sortedWeeks[sortedWeeks.length - 1].weekNumber}`
+      : "No weeks assigned",
+    progress,
+  }
+}
+
+function stripSiteSuffix(title: string, location: string) {
+  const suffix = ` - ${location}`
+  return title.endsWith(suffix) ? title.slice(0, -suffix.length) : title
+}
+
+function getWeekFocusSummary(week: RoadmapWeek) {
+  const focusTitles = week.objectives
+    .map((objective) => stripSiteSuffix(objective.title, week.location))
+    .filter(Boolean)
+
+  if (!focusTitles.length) return "Weekly planning focus"
+  return focusTitles.join(" + ")
+}
+
+function getWeekCodes(week: RoadmapWeek) {
+  return week.objectives
+    .map((objective) => objective.code)
+    .filter((code): code is string => Boolean(code))
+}
+
 export function RoadmapContentNew() {
   const profile = useUserProfileStore((state) => state.profile)
   const traineeName = getProfileDisplayName(profile)
+  const profileDiscipline = normalizeDiscipline(profile.discipline) as RoadmapDiscipline
   const roadmaps = useRoadmapStore((state) => state.roadmaps)
   const selectedRoadmapId = useRoadmapStore((state) => state.selectedRoadmapId)
   const createRoadmap = useRoadmapStore((state) => state.createRoadmap)
   const updateRoadmap = useRoadmapStore((state) => state.updateRoadmap)
   const deleteRoadmap = useRoadmapStore((state) => state.deleteRoadmap)
   const setSelectedRoadmap = useRoadmapStore((state) => state.setSelectedRoadmap)
-  const reorderWeeks = useRoadmapStore((state) => state.reorderWeeks)
-  const updateStoredWeek = useRoadmapStore((state) => state.updateWeek)
-  const toggleChecklistItem = useRoadmapStore((state) => state.toggleChecklistItem)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [activeTripIndex, setActiveTripIndex] = useState(0)
+  const [wizardView, setWizardView] = useState<"choice" | "form">("choice")
   const [step, setStep] = useState(0)
   const [wizardState, setWizardState] = useState<RoadmapWizardState>(() => buildWizardState(profile))
-  const [draggedWeekId, setDraggedWeekId] = useState<string | null>(null)
 
   const selectedRoadmap = useMemo(
     () => roadmaps.find((roadmap) => roadmap.id === selectedRoadmapId) ?? roadmaps[0] ?? null,
@@ -133,27 +171,32 @@ export function RoadmapContentNew() {
   )
 
   const progressValue = getRoadmapProgress(selectedRoadmap)
+  const clampedTripIndex = selectedRoadmap
+    ? Math.min(activeTripIndex, Math.max(selectedRoadmap.trips.length - 1, 0))
+    : 0
+  const activeTrip = selectedRoadmap?.trips[clampedTripIndex] ?? null
+  const activeTripWeeks = useMemo(
+    () =>
+      selectedRoadmap && activeTrip
+        ? selectedRoadmap.weeks
+            .filter((week) => week.tripId === activeTrip.id)
+            .sort((left, right) => left.weekNumber - right.weekNumber)
+        : [],
+    [activeTrip, selectedRoadmap]
+  )
 
   const resetWizard = (roadmap?: RoadmapItem) => {
     setWizardState(buildWizardState(profile, roadmap))
     setStep(0)
     setEditingId(roadmap?.id ?? null)
+    setWizardView(roadmap ? "form" : "choice")
   }
 
   const applyAutoTemplate = (
-    updates: Partial<Pick<RoadmapWizardState, "discipline" | "group" | "mode" | "title" | "startDate">> = {}
+    updates: Partial<Pick<RoadmapWizardState, "discipline" | "group" | "title" | "startDate">> = {}
   ) => {
     setWizardState((current) => {
-      const next = { ...current, ...updates }
-      if (next.mode !== "auto") return next
-      return buildGeneratedRoadmap({
-        discipline: next.discipline,
-        group: next.group,
-        title: next.title,
-        traineeName,
-        companyName: profile.company,
-        startDate: next.startDate,
-      }) as RoadmapWizardState
+      return { ...current, ...updates }
     })
   }
 
@@ -165,6 +208,29 @@ export function RoadmapContentNew() {
   const openEditWizard = (roadmap: RoadmapItem) => {
     resetWizard(roadmap)
     setIsWizardOpen(true)
+  }
+
+  const handleAutomaticCreate = () => {
+    createRoadmap(
+      buildGeneratedRoadmap({
+        discipline: profileDiscipline,
+        group: "A",
+        title: "OJT Learning Roadmap",
+        traineeName,
+        companyName: profile.company,
+        startDate: AUTOMATIC_ROADMAP_START_DATE,
+      }) as RoadmapWizardState
+    )
+    setActiveTripIndex(0)
+    setIsWizardOpen(false)
+    setEditingId(null)
+  }
+
+  const handleManualStart = () => {
+    setWizardState(buildManualWizardState(profile))
+    setEditingId(null)
+    setStep(0)
+    setWizardView("form")
   }
 
   const handleWizardSubmit = () => {
@@ -206,86 +272,6 @@ export function RoadmapContentNew() {
       location: field === "tripId" ? selectedTrip.location : weeks[weekIndex].location,
     }
     setWizardState((current) => ({ ...current, weeks }))
-  }
-
-  const updateObjective = (weekIndex: number, objectiveIndex: number, field: "title" | "description" | "notes", value: string) => {
-    setWizardState((current) => ({
-      ...current,
-      weeks: current.weeks.map((week, index) =>
-        index === weekIndex
-          ? {
-              ...week,
-              objectives: week.objectives.map((objective, itemIndex) =>
-                itemIndex === objectiveIndex ? { ...objective, [field]: value } : objective
-              ),
-            }
-          : week
-      ),
-    }))
-  }
-
-  const updateObjectiveChecklist = (weekIndex: number, objectiveIndex: number, value: string) => {
-    setWizardState((current) => ({
-      ...current,
-      weeks: current.weeks.map((week, index) =>
-        index === weekIndex
-          ? {
-              ...week,
-              objectives: week.objectives.map((objective, itemIndex) =>
-                itemIndex === objectiveIndex
-                  ? { ...objective, checklist: value.split("\n").filter((item) => item.trim()).map((item) => item.trim()) }
-                  : objective
-              ),
-            }
-          : week
-      ),
-    }))
-  }
-
-  const addObjective = (weekIndex: number) => {
-    setWizardState((current) => ({
-      ...current,
-      weeks: current.weeks.map((week, index) =>
-        index === weekIndex
-          ? {
-              ...week,
-              objectives: [
-                ...week.objectives,
-                {
-                  title: `Objective ${week.objectives.length + 1}`,
-                  description: "",
-                  priority: "medium",
-                  checklist: ["Complete objective"],
-                  equipment: [],
-                  notes: "",
-                  source: "roadmap",
-                  category: "technical",
-                },
-              ],
-            }
-          : week
-      ),
-    }))
-  }
-
-  const removeObjective = (weekIndex: number, objectiveIndex: number) => {
-    setWizardState((current) => ({
-      ...current,
-      weeks: current.weeks.map((week, index) =>
-        index === weekIndex
-          ? { ...week, objectives: week.objectives.filter((_, itemIndex) => itemIndex !== objectiveIndex) }
-          : week
-      ),
-    }))
-  }
-
-  const handleDrop = (targetIndex: number) => {
-    if (draggedWeekId === null || !selectedRoadmap) return
-    const startIndex = selectedRoadmap.weeks.findIndex((week) => week.id === draggedWeekId)
-    if (startIndex >= 0) {
-      reorderWeeks(selectedRoadmap.id, startIndex, targetIndex)
-    }
-    setDraggedWeekId(null)
   }
 
   return (
@@ -370,135 +356,167 @@ export function RoadmapContentNew() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">18-week training structure</h3>
-          <div className="space-y-3">
-            {selectedRoadmap.weeks.map((week, index) => (
-              <Card
-                key={week.id}
-                draggable
-                onDragStart={() => setDraggedWeekId(week.id)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => handleDrop(index)}
-                className="transition-shadow hover:shadow-md"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex gap-3">
-                      <div className="mt-1 rounded-md bg-primary/10 p-2 text-primary">
-                        <GripVertical className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold">Week {week.weekNumber}</p>
-                          <Badge variant="secondary">{week.tripName}</Badge>
-                          {week.phase && <Badge variant="outline">{week.phase}</Badge>}
-                          <Badge variant="outline" className="gap-1">
-                            <Link2 className="h-3 w-3" />
-                            Weekly Goals
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{week.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                      <Badge variant="outline">{week.progress}%</Badge>
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/calendar?week=${week.id}`}>Open Planner</Link>
-                      </Button>
-                    </div>
-                  </div>
+      <div className="grid gap-4">
+        <Card>
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-lg">Trip focus</CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Roadmap shows one 3-week trip at a time. Tasks and checklists are handled in Weekly Planner.
+                </p>
+              </div>
+              <Button asChild className="gap-2">
+                <Link href="/calendar">
+                  Go to Weekly Execution
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
 
-                  <div className="mt-4 space-y-3">
-                    <div className="space-y-2">
-                      {week.objectives.map((objective) => (
-                        <div key={objective.id} className="rounded-lg border p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium">{objective.title}</p>
-                            <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                              {objective.category && <Badge variant="outline">{objective.category}</Badge>}
-                              {objective.difficulty && <Badge variant="secondary">{objective.difficulty}</Badge>}
-                              <Badge variant={objective.priority === "high" ? "default" : objective.priority === "medium" ? "secondary" : "outline"}>
-                                {objective.priority}
-                              </Badge>
-                            </div>
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{objective.description}</p>
-                          {objective.siteContrast && (
-                            <p className="mt-1 text-xs text-muted-foreground">{objective.siteContrast}</p>
-                          )}
-                          <div className="mt-2 space-y-2">
-                            {objective.checklist.map((item) => (
-                              <label key={item.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                                <Checkbox
-                                  checked={item.done}
-                                  onCheckedChange={() =>
-                                    toggleChecklistItem(selectedRoadmap.id, week.id, objective.id, item.id)
-                                  }
-                                  aria-label={`${item.done ? "Mark incomplete" : "Mark complete"}: ${item.text}`}
-                                />
-                                <span className={item.done ? "text-muted-foreground line-through" : ""}>{item.text}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="rounded-lg bg-muted/40 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reflection</p>
-                      <Textarea
-                        className="mt-2 min-h-20 bg-background"
-                        value={week.reflection}
-                        onChange={(event) =>
-                          updateStoredWeek(selectedRoadmap.id, week.id, { reflection: event.target.value })
-                        }
-                        placeholder="What did you learn this week?"
-                        aria-label={`Week ${week.weekNumber} reflection`}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+            <div className="grid grid-cols-[repeat(6,minmax(92px,1fr))] gap-2 overflow-x-auto pb-2">
+              {selectedRoadmap.trips.map((trip, index) => {
+                const summary = getTripWeekSummary(selectedRoadmap, trip)
+                return (
+                  <button
+                    key={trip.id}
+                    type="button"
+                    className={`rounded-lg border p-3 text-left transition hover:bg-muted/60 ${
+                      index === clampedTripIndex ? "border-primary bg-primary text-primary-foreground" : "bg-muted/25"
+                    }`}
+                    onClick={() => {
+                      setActiveTripIndex(index)
+                    }}
+                  >
+                    <span className="block whitespace-nowrap text-sm font-medium">Trip {trip.tripNumber}</span>
+                    <span className="mt-1 block whitespace-nowrap text-xs opacity-80">{summary.progress}% complete</span>
+                  </button>
+                )
+              })}
+            </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Trip overview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedRoadmap.trips.map((trip) => (
-                <div key={trip.id} className="rounded-lg border p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium">{trip.name}</p>
-                    <Badge variant="outline">Trip {trip.tripNumber}</Badge>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{trip.location}</p>
-                  <p className="mt-2 text-sm">{trip.focus}</p>
+            <div className="space-y-3 rounded-lg border bg-muted/25 p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">{activeTrip ? `Trip ${activeTrip.tripNumber}` : "Trip"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {activeTrip
+                      ? `${activeTrip.location} - ${getTripWeekSummary(selectedRoadmap, activeTrip).weekRange}`
+                      : "No trip selected"}
+                  </p>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+                {activeTrip && <Badge variant="secondary">{activeTrip.location}</Badge>}
+              </div>
+              {activeTrip && <p className="text-sm">{activeTrip.focus}</p>}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-3">
+              {activeTripWeeks.map((week) => {
+                const codes = getWeekCodes(week)
+                return (
+                  <div key={week.id} className="flex min-h-56 flex-col rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">Week {week.weekNumber}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {week.phase ? `${week.phase} phase` : week.tripName}
+                        </p>
+                      </div>
+                      <Badge variant="outline">{week.progress}%</Badge>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {codes.length ? (
+                        codes.map((code) => (
+                          <Badge key={code} variant="secondary" className="font-mono">
+                            {code}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="secondary">Summary</Badge>
+                      )}
+                    </div>
+                    <div className="mt-4 flex-1 space-y-2">
+                      <p className="text-xs font-medium uppercase text-muted-foreground">Focus</p>
+                      <p className="text-sm leading-relaxed">{getWeekFocusSummary(week)}</p>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Week progress</span>
+                        <span>{week.progress}%</span>
+                      </div>
+                      <Progress value={week.progress} className="h-1.5" />
+                    </div>
+                    <Button asChild variant="outline" className="mt-4 w-full gap-2">
+                      <Link href={`/calendar?week=${week.id}`}>
+                        Open Week {week.weekNumber}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                )
+              })}
+              {!activeTripWeeks.length && (
+                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground md:col-span-3">
+                  No weeks assigned to this trip.
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-2 border-t pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-0 gap-1 px-3 text-xs sm:gap-2 sm:px-4 sm:text-sm"
+                disabled={clampedTripIndex === 0}
+                onClick={() => {
+                  setActiveTripIndex((current) => Math.max(current - 1, 0))
+                }}
+              >
+                <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Previous Trip
+              </Button>
+              <div className="shrink-0 px-1 text-center text-xs text-muted-foreground sm:text-sm">
+                {activeTrip ? `Trip ${activeTrip.tripNumber} of ${selectedRoadmap.trips.length}` : "No trip selected"}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-0 gap-1 px-3 text-xs sm:gap-2 sm:px-4 sm:text-sm"
+                disabled={!selectedRoadmap || clampedTripIndex >= selectedRoadmap.trips.length - 1}
+                onClick={() => {
+                  setActiveTripIndex((current) =>
+                    selectedRoadmap ? Math.min(current + 1, selectedRoadmap.trips.length - 1) : current
+                  )
+                }}
+              >
+                Next Trip
+                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle className="text-lg">What this module gives you</CardTitle>
+              <CardTitle className="text-lg">Planning summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-start gap-2">
-                <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
-                <span>Wizard-based setup with six trip slots and an 18-week structure.</span>
+            <CardContent className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Discipline</span>
+                <Badge variant="outline">{selectedRoadmap.discipline}</Badge>
               </div>
-              <div className="flex items-start gap-2">
-                <BookOpen className="mt-0.5 h-4 w-4 text-primary" />
-                <span>Objectives, checklists, progress bars, and weekly reflections in the same flow.</span>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Group</span>
+                <Badge variant="outline">Group {selectedRoadmap.group}</Badge>
               </div>
-              <div className="flex items-start gap-2">
-                <Map className="mt-0.5 h-4 w-4 text-primary" />
-                <span>Drag-and-drop week ordering and automatic progress updates.</span>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Current trip</span>
+                <span className="font-medium">{activeTrip ? `Trip ${activeTrip.tripNumber}` : "-"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Weeks shown</span>
+                <span className="font-medium">{activeTripWeeks.length}</span>
               </div>
             </CardContent>
           </Card>
@@ -513,6 +531,55 @@ export function RoadmapContentNew() {
             <DialogTitle>{editingId ? "Edit Roadmap" : "Create Roadmap"}</DialogTitle>
           </DialogHeader>
 
+          {wizardView === "choice" && !editingId ? (
+            <div className="grid gap-4 py-2 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={handleAutomaticCreate}
+                className="rounded-lg border p-5 text-left transition hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="rounded-md bg-primary/10 p-2 text-primary">
+                    <Sparkles className="h-5 w-5" />
+                  </span>
+                  <div className="space-y-2">
+                    <p className="font-semibold">Generate automatically</p>
+                    <p className="text-sm text-muted-foreground">
+                      Create the default Excel-based roadmap immediately using the template engine.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Badge variant="secondary">{profileDiscipline}</Badge>
+                      <Badge variant="secondary">Start: 09 Jul 2026</Badge>
+                      <Badge variant="outline">Auto template</Badge>
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleManualStart}
+                className="rounded-lg border p-5 text-left transition hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="rounded-md bg-muted p-2 text-muted-foreground">
+                    <Pencil className="h-5 w-5" />
+                  </span>
+                  <div className="space-y-2">
+                    <p className="font-semibold">Manual editing</p>
+                    <p className="text-sm text-muted-foreground">
+                      Open the roadmap wizard and manually configure OJT information, trips, and weeks.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Badge variant="secondary">Custom setup</Badge>
+                      <Badge variant="outline">Editable weeks</Badge>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          ) : (
+          <>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-4 gap-2" aria-label="Roadmap wizard progress">
               {wizardSteps.map((label, index) => (
@@ -564,21 +631,6 @@ export function RoadmapContentNew() {
                     <SelectContent>
                       <SelectItem value="A">Group A</SelectItem>
                       <SelectItem value="B">Group B</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium">Generation mode</label>
-                  <Select
-                    value={wizardState.mode}
-                    onValueChange={(value) => applyAutoTemplate({ mode: value as RoadmapWizardState["mode"] })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select generation mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="auto">Auto from template registry</SelectItem>
-                      <SelectItem value="manual">Manual editing</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -691,63 +743,8 @@ export function RoadmapContentNew() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-3 md:col-span-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">Objectives and checklist</label>
-                          <Button type="button" size="sm" variant="outline" onClick={() => addObjective(weekIndex)}>
-                            <Plus className="mr-1 h-3.5 w-3.5" />
-                            Add objective
-                          </Button>
-                        </div>
-                        {week.objectives.map((objective, objectiveIndex) => (
-                          <div key={objectiveIndex} className="space-y-3 rounded-md border bg-muted/20 p-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold uppercase text-muted-foreground">
-                                Objective {objectiveIndex + 1}
-                              </span>
-                              {week.objectives.length > 1 && (
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => removeObjective(weekIndex, objectiveIndex)}
-                                  aria-label={`Remove objective ${objectiveIndex + 1}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            <Input
-                              value={objective.title}
-                              onChange={(event) => updateObjective(weekIndex, objectiveIndex, "title", event.target.value)}
-                              placeholder="Objective title"
-                            />
-                            <Textarea
-                              value={objective.description}
-                              onChange={(event) =>
-                                updateObjective(weekIndex, objectiveIndex, "description", event.target.value)
-                              }
-                              placeholder="Objective description"
-                            />
-                            <Textarea
-                              value={objective.checklist.join("\n")}
-                              onChange={(event) => updateObjectiveChecklist(weekIndex, objectiveIndex, event.target.value)}
-                              placeholder={"One checklist item per line"}
-                              aria-label={`Objective ${objectiveIndex + 1} checklist`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium">Reflection</label>
-                        <Textarea
-                          value={week.reflection}
-                          onChange={(event) => {
-                            const weeks = [...wizardState.weeks]
-                            weeks[weekIndex] = { ...weeks[weekIndex], reflection: event.target.value }
-                            setWizardState((current) => ({ ...current, weeks }))
-                          }}
-                        />
+                      <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground md:col-span-2">
+                        Tasks, checklists, and weekly reflection are managed in Weekly Planner after the roadmap is saved.
                       </div>
                     </div>
                   </div>
@@ -757,7 +754,7 @@ export function RoadmapContentNew() {
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">Review the generated roadmap before saving it.</p>
+                <p className="text-sm text-muted-foreground">Review the roadmap before saving it.</p>
                 <Card className="bg-muted/30">
                   <CardContent className="space-y-3 p-4">
                     <div>
@@ -800,6 +797,8 @@ export function RoadmapContentNew() {
               )}
             </div>
           </DialogFooter>
+          </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
