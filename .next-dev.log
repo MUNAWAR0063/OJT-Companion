@@ -1002,3 +1002,25 @@ Creating turbopack project {
  ✓ Compiled in 711ms
  ✓ Compiled in 1160ms
  ✓ Compiled in 551ms
+ GET /notifications 200 in 1719ms (compile: 491ms, proxy.ts: 676ms, render: 552ms)
+ GET /notifications 200 in 1350ms (compile: 21ms, proxy.ts: 532ms, render: 797ms)
+ GET /notifications 200 in 1642ms (compile: 15ms, proxy.ts: 1256ms, render: 370ms)
+ GET /notifications 200 in 896ms (compile: 18ms, proxy.ts: 630ms, render: 248ms)
+ ○ Compiling /logout ...
+ GET /logout 200 in 11.3s (compile: 8.5s, proxy.ts: 1369ms, render: 1381ms)
+ ○ Compiling /login ...
+ GET /login?next=%2Flogout 200 in 5.0s (compile: 3.9s, proxy.ts: 10ms, render: 1052ms)
+ GET /login 200 in 7.1s (compile: 4.2s, proxy.ts: 16ms, render: 2.9s)
+ GET /register 200 in 2.0s (compile: 1808ms, proxy.ts: 8ms, render: 184ms)
+ ✓ Compiled in 519ms
+ ✓ Compiled in 4.1s
+ ○ Compiling /dashboard ...
+ GET /dashboard 200 in 9.2s (compile: 8.5s, proxy.ts: 579ms, render: 130ms)
+ GET /dashboard 200 in 870ms (compile: 10ms, proxy.ts: 804ms, render: 55ms)
+ GET /dashboard 200 in 1213ms (compile: 103ms, proxy.ts: 926ms, render: 184ms)
+ GET /notifications 200 in 1224ms (compile: 385ms, proxy.ts: 280ms, render: 559ms)
+ GET /help 200 in 2.4s (compile: 1892ms, proxy.ts: 223ms, render: 318ms)
+ GET /notifications 200 in 1316ms (compile: 23ms, proxy.ts: 578ms, render: 715ms)
+ GET /learning/roadmap 200 in 1000ms (compile: 283ms, proxy.ts: 538ms, render: 178ms)
+ GET /notifications 200 in 467ms (compile: 12ms, proxy.ts: 404ms, render: 52ms)
+ ✓ Compiled in 519ms

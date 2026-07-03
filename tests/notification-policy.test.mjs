@@ -48,6 +48,7 @@ test("buildCurrentRoadmapChecklistNotification only reports the active week", ()
 
   assert.equal(weekTwoNotification.weekNumber, 2)
   assert.equal(weekTwoNotification.fingerprint, "roadmap-checklist-roadmap-1-week-2")
+  assert.equal(weekTwoNotification.message, "Week 2 of 18: 1 checklist item is incomplete.")
 })
 
 test("buildCurrentRoadmapChecklistNotification supports the full 18 week OJT window", () => {
@@ -63,6 +64,7 @@ test("buildCurrentRoadmapChecklistNotification supports the full 18 week OJT win
 
   assert.equal(weekEighteenNotification.weekNumber, 18)
   assert.equal(weekEighteenNotification.fingerprint, "roadmap-checklist-roadmap-18-week-18")
+  assert.equal(weekEighteenNotification.message, "Week 18 of 18: 1 checklist item is incomplete.")
 })
 
 test("reconcileRoadmapChecklistNotifications removes stale roadmap checklist notifications", () => {

@@ -23,6 +23,7 @@ function isEmail(value: string) {
 export default function RegisterPage() {
   const router = useRouter()
   const signUp = useAuthStore((state) => state.signUp)
+  const [step, setStep] = useState(1)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,13 +36,30 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const validateAccountStep = () => {
     setError("")
     if (!fullName.trim()) return setError("Full name is required")
     if (!isEmail(email)) return setError("Enter a valid email address")
     if (password.length < 8) return setError("Password must be at least 8 characters")
     if (password !== confirmPassword) return setError("Passwords do not match")
+    return true
+  }
+
+  const nextStep = () => {
+    if (validateAccountStep() === true) setStep(2)
+  }
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (step === 1) {
+      nextStep()
+      return
+    }
+    if (validateAccountStep() !== true) {
+      setStep(1)
+      return
+    }
+    setError("")
     if (!accepted) return setError("You must accept the terms")
 
     setLoading(true)
@@ -65,54 +83,88 @@ export default function RegisterPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Create Account</CardTitle>
             <p className="text-sm text-muted-foreground">Start your OJT Companion workspace.</p>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {[
+                ["1", "Account"],
+                ["2", "OJT Detail"],
+              ].map(([value, label]) => {
+                const active = Number(value) === step
+                return (
+                  <div
+                    key={value}
+                    className={`rounded-md border px-3 py-2 text-sm ${
+                      active ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    <span className="font-medium">Step {value}</span>
+                    <span className="ml-2">{label}</span>
+                  </div>
+                )
+              })}
+            </div>
           </CardHeader>
           <CardContent>
             <form className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" />
-              </div>
-              <div className="space-y-2">
-                <Label>Discipline</Label>
-                <Select value={discipline} onValueChange={(value) => setDiscipline(value as Discipline)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {DISCIPLINE_OPTIONS.map((item) => <SelectItem key={item.code} value={item.label}>{item.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input id="company" value={company} onChange={(event) => setCompany(event.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="program">Program</Label>
-                <Input id="program" value={program} onChange={(event) => setProgram(event.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="batch">Batch</Label>
-                <Input id="batch" value={batch} onChange={(event) => setBatch(event.target.value)} />
-              </div>
-              <label className="flex items-center gap-2 text-sm text-muted-foreground md:col-span-2">
-                <Checkbox checked={accepted} onCheckedChange={(checked) => setAccepted(checked === true)} />
-                Accept Terms & Conditions
-              </label>
+              {step === 1 ? (
+                <>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input id="fullName" value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label>Discipline</Label>
+                    <Select value={discipline} onValueChange={(value) => setDiscipline(value as Discipline)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {DISCIPLINE_OPTIONS.map((item) => <SelectItem key={item.code} value={item.label}>{item.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input id="company" value={company} onChange={(event) => setCompany(event.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="program">Program</Label>
+                    <Input id="program" value={program} onChange={(event) => setProgram(event.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="batch">Batch</Label>
+                    <Input id="batch" value={batch} onChange={(event) => setBatch(event.target.value)} />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground md:col-span-2">
+                    <Checkbox checked={accepted} onCheckedChange={(checked) => setAccepted(checked === true)} />
+                    Accept Terms & Conditions
+                  </label>
+                </>
+              )}
               {error && <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive md:col-span-2">{error}</p>}
-              <Button className="md:col-span-2" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Account
-              </Button>
+              <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
+                {step === 2 && (
+                  <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={loading}>
+                    Back
+                  </Button>
+                )}
+                <Button className={step === 1 ? "md:col-span-2" : ""} disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {step === 1 ? "Continue" : "Create Account"}
+                </Button>
+              </div>
               <p className="text-center text-sm text-muted-foreground md:col-span-2">
                 Already have an account? <Link href="/login" className="font-medium text-primary hover:underline">Sign In</Link>
               </p>
