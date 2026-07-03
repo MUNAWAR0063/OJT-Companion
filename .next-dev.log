@@ -1024,3 +1024,9 @@ Creating turbopack project {
  GET /learning/roadmap 200 in 1000ms (compile: 283ms, proxy.ts: 538ms, render: 178ms)
  GET /notifications 200 in 467ms (compile: 12ms, proxy.ts: 404ms, render: 52ms)
  ✓ Compiled in 519ms
+ GET /notifications 200 in 1527ms (compile: 208ms, proxy.ts: 639ms, render: 680ms)
+ GET /learning/roadmap 200 in 1054ms (compile: 267ms, proxy.ts: 667ms, render: 120ms)
+ GET /calendar 200 in 3.6s (compile: 2.9s, proxy.ts: 491ms, render: 177ms)
+ GET /calendar?week=ra93maoh 200 in 410ms (compile: 13ms, proxy.ts: 346ms, render: 51ms)
+ GET /notifications 200 in 421ms (compile: 8ms, proxy.ts: 372ms, render: 41ms)
+ GET /notifications 200 in 1450ms (compile: 462ms, proxy.ts: 708ms, render: 281ms)
