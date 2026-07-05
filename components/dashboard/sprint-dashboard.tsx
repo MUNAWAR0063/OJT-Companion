@@ -37,14 +37,6 @@ import { useDisciplineWorkspace } from "@/lib/discipline/use-discipline-workspac
 
 const priorityRank: Record<PlannerPriority, number> = { follow_up: 0, high: 1, medium: 2, low: 3 }
 
-const onboardingItems = [
-  "Review your Learning Roadmap",
-  "Open Week 1 Planner",
-  "Complete your first task",
-  "Write your first Daily Journal",
-  "Add your first equipment observation",
-]
-
 function CountWidget({
   title,
   count,
@@ -141,6 +133,53 @@ export function SprintDashboard() {
   const currentFocus = currentWeek
     ? `Week ${currentWeek.weekNumber} - ${currentWeek.title}`
     : "Week 1 - Foundation at Grissik"
+
+  const onboardingSteps = useMemo(() => {
+    const firstWeek = plannerWeeks.find((week) => week.weekNumber === 1) ?? plannerWeeks[0] ?? null
+    const plannerHasBeenOpened = plannerWeeks.some((week) => week.id === selectedPlannerWeekId)
+    const hasCompletedTask = plannerWeeks.some((week) =>
+      week.objectives.some((objective) => objective.status === "completed" || objective.progress === 100)
+    )
+
+    return [
+      {
+        id: "roadmap",
+        label: "Review your Learning Roadmap",
+        completed: Boolean(roadmap),
+        href: "/learning/roadmap",
+        actionLabel: "Start Roadmap",
+      },
+      {
+        id: "planner",
+        label: "Open Week 1 Planner",
+        completed: plannerHasBeenOpened,
+        href: firstWeek ? `/calendar?week=${encodeURIComponent(firstWeek.id)}` : "/calendar",
+        actionLabel: "Open Week 1 Planner",
+      },
+      {
+        id: "task",
+        label: "Complete your first task",
+        completed: hasCompletedTask,
+        href: firstWeek ? `/calendar?week=${encodeURIComponent(firstWeek.id)}` : "/calendar",
+        actionLabel: "Complete First Task",
+      },
+      {
+        id: "journal",
+        label: "Write your first Daily Journal",
+        completed: journalEntries.length > 0,
+        href: "/team",
+        actionLabel: "Write Daily Journal",
+      },
+      {
+        id: "equipment",
+        label: "Add your first equipment observation",
+        completed: equipment.length > 0,
+        href: "/equipment",
+        actionLabel: "Add Equipment Observation",
+      },
+    ]
+  }, [equipment.length, journalEntries.length, plannerWeeks, roadmap, selectedPlannerWeekId])
+  const nextOnboardingStep = onboardingSteps.find((step) => !step.completed) ?? null
 
   useEffect(() => {
     setShowOnboarding(window.localStorage.getItem("ojt-onboarding-dismissed") !== "true")
@@ -242,19 +281,40 @@ export function SprintDashboard() {
                 </p>
               </div>
               <div className="space-y-2">
-                {onboardingItems.map((item) => (
-                  <div key={item} className="flex items-center gap-3 rounded-lg border px-3 py-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{item}</span>
+                {onboardingSteps.map((step) => (
+                  <div
+                    key={step.id}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
+                      step.completed ? "border-emerald-500/30 bg-emerald-500/5" : ""
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`h-4 w-4 shrink-0 ${
+                        step.completed ? "text-emerald-500" : "text-muted-foreground"
+                      }`}
+                    />
+                    <span className={`text-sm ${step.completed ? "text-emerald-700 dark:text-emerald-300" : ""}`}>
+                      {step.label}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
             <div className="flex gap-2 sm:flex-row lg:flex-col">
-              <Button asChild>
-                <Link href="/learning/roadmap">Start Roadmap</Link>
-              </Button>
-              <Button variant="outline" onClick={dismissOnboarding}>Dismiss</Button>
+              {nextOnboardingStep ? (
+                <Button asChild>
+                  <Link href={nextOnboardingStep.href}>
+                    {nextOnboardingStep.id === "roadmap" ? nextOnboardingStep.actionLabel : `Next: ${nextOnboardingStep.actionLabel}`}
+                  </Link>
+                </Button>
+              ) : (
+                <Button onClick={dismissOnboarding}>
+                  Finish Setup
+                </Button>
+              )}
+              {nextOnboardingStep ? (
+                <Button variant="outline" onClick={dismissOnboarding}>Dismiss</Button>
+              ) : null}
             </div>
           </CardContent>
         </Card>

@@ -374,6 +374,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
       createRoadmap: (input) => {
         const discipline = normalizeDiscipline(input.discipline) as RoadmapDiscipline
         const group = normalizeRoadmapGroup(input.group) as RoadmapGroup
+        const mode = input.mode || "manual"
         const startDate = input.startDate || new Date().toISOString().slice(0, 10)
         const endDate = new Date(new Date(startDate).getTime() + (18 * 7 - 1) * 24 * 60 * 60 * 1000)
           .toISOString()
@@ -389,7 +390,8 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
         }))
 
         const weeks = input.weeks.slice(0, 18).map((week, index) => {
-          const trip = trips.find((entry) => entry.id === week.tripId) ?? trips[Math.min(index, trips.length - 1)]
+          const selectedTrip = trips.find((entry) => entry.id === week.tripId)
+          const trip = selectedTrip ?? (mode === "auto" ? trips[Math.min(index, trips.length - 1)] : null)
           const objectives = (week.objectives ?? []).length
             ? week.objectives.map((objective, objectiveIndex) => ({
                 id: makeId(),
@@ -413,15 +415,17 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                 activities: objective.activities,
                 progress: 0,
               }))
-            : buildDefaultObjectives(index + 1, trip.name)
+            : mode === "manual"
+              ? []
+              : buildDefaultObjectives(index + 1, trip?.name ?? `Trip ${index + 1}`)
 
           return {
             id: makeId(),
             weekNumber: index + 1,
-            title: week.title || `Week ${index + 1}`,
-            tripId: trip.id,
-            tripName: trip.name,
-            location: trip.location,
+            title: mode === "manual" ? week.title.trim() : week.title || `Week ${index + 1}`,
+            tripId: trip?.id ?? "",
+            tripName: trip?.name ?? "",
+            location: trip?.location ?? "",
             phase: week.phase,
             variationSeed: week.variationSeed,
             status: week.status || "not-started",
@@ -438,7 +442,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
           companyName: input.companyName || "Company",
           discipline,
           group,
-          mode: input.mode || "manual",
+          mode,
           variationSeed: input.variationSeed,
           startDate,
           endDate,
@@ -471,6 +475,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
 
             const discipline = normalizeDiscipline(input.discipline) as RoadmapDiscipline
             const group = normalizeRoadmapGroup(input.group) as RoadmapGroup
+            const mode = input.mode || roadmap.mode || "manual"
             const startDate = input.startDate || roadmap.startDate
             const endDate = input.startDate
               ? new Date(new Date(input.startDate).getTime() + (18 * 7 - 1) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -486,7 +491,8 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
             }))
 
             const weeks = input.weeks.slice(0, 18).map((week, index) => {
-              const trip = trips.find((entry) => entry.id === week.tripId) ?? trips[Math.min(index, trips.length - 1)]
+              const selectedTrip = trips.find((entry) => entry.id === week.tripId)
+              const trip = selectedTrip ?? (mode === "auto" ? trips[Math.min(index, trips.length - 1)] : null)
               const previousWeek = roadmap.weeks[index] ?? roadmap.weeks[roadmap.weeks.length - 1]
               const objectives = (week.objectives ?? []).length
                 ? week.objectives.map((objective, objectiveIndex) => ({
@@ -520,15 +526,18 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
                     activities: objective.activities || previousWeek?.objectives[objectiveIndex]?.activities,
                     progress: 0,
                   }))
-                : previousWeek?.objectives || buildDefaultObjectives(index + 1, trip.name)
+                : previousWeek?.objectives ??
+                  (mode === "manual"
+                    ? []
+                    : buildDefaultObjectives(index + 1, trip?.name ?? `Trip ${index + 1}`))
 
               return {
                 id: previousWeek?.id || makeId(),
                 weekNumber: index + 1,
-                title: week.title || `Week ${index + 1}`,
-                tripId: trip.id,
-                tripName: trip.name,
-                location: trip.location,
+                title: mode === "manual" ? week.title.trim() : week.title || `Week ${index + 1}`,
+                tripId: trip?.id ?? "",
+                tripName: trip?.name ?? "",
+                location: trip?.location ?? "",
                 phase: week.phase,
                 variationSeed: week.variationSeed,
                 status: week.status || previousWeek?.status || "not-started",
@@ -545,7 +554,7 @@ export const useRoadmapStore = create<RoadmapStoreState>()(
               companyName: input.companyName || roadmap.companyName,
               discipline,
               group,
-              mode: input.mode || roadmap.mode || "manual",
+              mode,
               variationSeed: input.variationSeed || roadmap.variationSeed,
               startDate,
               endDate,

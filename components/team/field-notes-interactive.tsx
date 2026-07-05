@@ -621,9 +621,9 @@ export function FieldNotesInteractive() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveEntry}>{editingId ? "Save Changes" : "Create Entry"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={saveEntry}>{editingId ? "Save Changes" : "Create Entry"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

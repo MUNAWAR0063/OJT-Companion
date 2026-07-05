@@ -33,13 +33,13 @@ const createTripDefaults = (): RoadmapTrip[] =>
     description: index === 0 ? "Foundational training on the core equipment and safety routines." : "Targeted placement for the next training stage.",
   }))
 
-const createWeekDefaults = (trips: RoadmapTrip[]) =>
+const createEmptyWeekSlots = () =>
   Array.from({ length: 18 }, (_, index) => ({
     weekNumber: index + 1,
-    title: `Week ${index + 1}`,
-    tripId: trips[Math.min(Math.floor(index / 3), trips.length - 1)].id,
-    tripName: trips[Math.min(Math.floor(index / 3), trips.length - 1)].name,
-    location: trips[Math.min(Math.floor(index / 3), trips.length - 1)].location,
+    title: "",
+    tripId: "",
+    tripName: "",
+    location: "",
     objectives: [],
     reflection: "",
   }))
@@ -57,7 +57,7 @@ const buildManualWizardState = (profile: UserProfile): RoadmapWizardState => {
     mode: "manual",
     startDate: new Date().toISOString().slice(0, 10),
     trips,
-    weeks: createWeekDefaults(trips),
+    weeks: createEmptyWeekSlots(),
   }
 }
 
@@ -107,7 +107,7 @@ const buildWizardState = (profile: UserProfile, roadmap?: RoadmapItem): RoadmapW
           })),
           reflection: week.reflection ?? "",
         }))
-      : createWeekDefaults(trips),
+      : createEmptyWeekSlots(),
   }
 }
 
@@ -709,7 +709,9 @@ export function RoadmapContentNew() {
 
             {step === 2 && (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">Assign each of the 18 weeks to a trip and define the week title.</p>
+                <p className="text-sm text-muted-foreground">
+                  All 18 week slots start empty in manual mode. Fill only the week titles and trip assignments you need.
+                </p>
                 {wizardState.weeks.map((week, weekIndex) => (
                   <div key={`${week.weekNumber}-${weekIndex}`} className="rounded-lg border p-4">
                     <p className="mb-3 font-medium">Week {week.weekNumber}</p>
@@ -718,6 +720,7 @@ export function RoadmapContentNew() {
                         <label className="text-sm font-medium">Week title</label>
                         <Input
                           value={week.title}
+                          placeholder="Enter week title"
                           onChange={(event) => {
                             const weeks = [...wizardState.weeks]
                             weeks[weekIndex] = { ...weeks[weekIndex], title: event.target.value }
@@ -781,7 +784,7 @@ export function RoadmapContentNew() {
             )}
           </div>
 
-          <DialogFooter className="flex justify-between gap-2">
+          <DialogFooter className="flex-row justify-between gap-2">
             <div className="flex gap-2">
               {step > 0 && (
                 <Button variant="outline" onClick={() => setStep((current) => current - 1)}>
