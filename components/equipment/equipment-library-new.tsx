@@ -50,6 +50,8 @@ const categories = [
   "Other",
 ]
 
+const starterEquipment = ["Transformer", "Switchgear", "Circuit Breaker", "Protection Relay", "Electric Motor"]
+
 const sectionGroups: Array<{
   value: string
   label: string
@@ -519,18 +521,30 @@ export function EquipmentLibraryNew() {
 
           {equipment.length === 0 ? (
             <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-                <Cpu className="h-11 w-11 text-muted-foreground" />
+              <CardContent className="flex flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+                <div className="rounded-lg bg-primary/10 p-3 text-primary">
+                  <Cpu className="h-8 w-8" />
+                </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">No equipment has been added</h3>
+                  <h3 className="text-lg font-semibold">No equipment has been added yet</h3>
                   <p className="max-w-md text-sm text-muted-foreground">
-                    Catalog the equipment you encounter and build a structured engineering knowledge workspace.
+                    Start by adding equipment you observe during field activity.
                   </p>
                 </div>
-                <Button onClick={openCreate}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Equipment
-                </Button>
+                <div className="flex max-w-xl flex-wrap justify-center gap-2">
+                  {starterEquipment.map((item) => (
+                    <Badge key={item} variant="secondary">{item}</Badge>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+                  <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={openCreate}>
+                    <Plus className="h-4 w-4" />
+                    Add Equipment
+                  </Button>
+                  <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => console.log("Use Sample Equipment clicked")}>
+                    Use Sample Equipment
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : filteredEquipment.length === 0 ? (
@@ -598,8 +612,8 @@ export function EquipmentLibraryNew() {
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Equipment" : "Add Equipment"}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Equipment name</label>
               <Input
                 value={form.name}
@@ -613,7 +627,7 @@ export function EquipmentLibraryNew() {
                 value={form.category}
                 onValueChange={(value) => setForm((current) => ({ ...current, category: value }))}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {availableCategories.map((category) => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
@@ -645,7 +659,7 @@ export function EquipmentLibraryNew() {
                 placeholder="25 MVA, 11 kV"
               />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Location</label>
               <Input
                 value={form.location}
@@ -654,9 +668,9 @@ export function EquipmentLibraryNew() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveEquipment}>{editingId ? "Save Changes" : "Create Equipment"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={saveEquipment}>{editingId ? "Save Changes" : "Create Equipment"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -48,6 +48,8 @@ const defaultCategories = [
   "Lessons Learned",
 ]
 
+const starterTemplates = ["Lesson Learned", "Technical Note", "Troubleshooting", "Procedure Summary", "Safety Insight"]
+
 const emptyForm: KnowledgeArticleInput = {
   title: "",
   category: "Power Systems",
@@ -459,13 +461,25 @@ export function KnowledgeBaseInteractive() {
 
           {articles.length === 0 ? (
             <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-                <BookOpen className="h-11 w-11 text-muted-foreground" />
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Knowledge Base Empty</h3>
-                  <p className="max-w-md text-sm text-muted-foreground">Create your first Markdown article to capture engineering knowledge and field experience.</p>
+              <CardContent className="flex flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+                <div className="rounded-lg bg-primary/10 p-3 text-primary">
+                  <BookOpen className="h-8 w-8" />
                 </div>
-                <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Create Article</Button>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Create your first engineering note</h3>
+                  <p className="max-w-md text-sm text-muted-foreground">
+                    Capture lessons learned, troubleshooting notes, procedures, and field observations.
+                  </p>
+                </div>
+                <div className="flex max-w-xl flex-wrap justify-center gap-2">
+                  {starterTemplates.map((template) => (
+                    <Badge key={template} variant="secondary">{template}</Badge>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+                  <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={openCreate}><Plus className="h-4 w-4" />Create Article</Button>
+                  <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => console.log("Use Template clicked")}>Use Template</Button>
+                </div>
               </CardContent>
             </Card>
           ) : filteredArticles.length === 0 ? (
@@ -508,15 +522,15 @@ export function KnowledgeBaseInteractive() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Edit Article Details" : "Create Knowledge Article"}</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Title</label>
               <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Generator excitation systems" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
               <Select value={form.category} onValueChange={(value) => setForm((current) => ({ ...current, category: value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -524,7 +538,7 @@ export function KnowledgeBaseInteractive() {
               <label className="text-sm font-medium">Tags</label>
               <Input value={form.tags.join(", ")} onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }))} placeholder="generator, avr, protection" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Related standards</label>
               <Textarea value={form.relatedStandards.join("\n")} onChange={(event) => setForm((current) => ({ ...current, relatedStandards: event.target.value.split("\n") }))} placeholder={"One standard per line\nIEC 60034\nIEEE 421.5"} />
             </div>
@@ -553,9 +567,9 @@ export function KnowledgeBaseInteractive() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveArticle}>{editingId ? "Save Changes" : "Create Article"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={saveArticle}>{editingId ? "Save Changes" : "Create Article"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

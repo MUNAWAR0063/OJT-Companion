@@ -46,6 +46,14 @@ const defaultCategories = [
   "Other",
 ]
 
+const starterPhotoTypes = [
+  "Equipment nameplate",
+  "Site observation",
+  "Inspection evidence",
+  "Safety finding",
+  "Before/after condition",
+]
+
 const emptyForm: GalleryPhotoInput = {
   title: "",
   category: "Equipment",
@@ -281,15 +289,28 @@ export function GalleryInteractive() {
 
       {photos.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <ImageIcon className="h-11 w-11 text-muted-foreground" />
+          <CardContent className="flex flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+            <div className="rounded-lg bg-primary/10 p-3 text-primary">
+              <ImageIcon className="h-8 w-8" />
+            </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No photos yet</h3>
               <p className="max-w-md text-sm text-muted-foreground">
                 Build a visual engineering record connected to equipment and daily journal entries.
               </p>
             </div>
-            <Button onClick={openUpload}><Camera className="mr-2 h-4 w-4" />Add First Photo</Button>
+            <div className="flex max-w-xl flex-wrap justify-center gap-2">
+              {starterPhotoTypes.map((type) => (
+                <Badge key={type} variant="secondary">{type}</Badge>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={openUpload}><Camera className="h-4 w-4" />Add First Photo</Button>
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={openUpload}>
+                <Upload className="h-4 w-4" />
+                Upload from Device
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : filteredPhotos.length === 0 ? (
@@ -342,9 +363,9 @@ export function GalleryInteractive() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Edit Photo" : "Upload Photo"}</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4 py-2">
             {!editingId && (
-              <div className="sm:col-span-2">
+              <div className="col-span-2">
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }}
@@ -369,22 +390,22 @@ export function GalleryInteractive() {
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleFileInput} />
               </div>
             )}
-            <div className="space-y-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Title</label>
               <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Transformer inspection" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
               <Select value={form.category} onValueChange={(value) => setForm((current) => ({ ...current, category: value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <label className="text-sm font-medium">Location</label>
               <Input value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} placeholder="Plant, substation, workshop, or site" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Notes</label>
               <Textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Describe what the photo shows, why it matters, and any observations." className="min-h-28" />
             </div>
@@ -413,9 +434,9 @@ export function GalleryInteractive() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => void savePhoto()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Add Photo"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={() => void savePhoto()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Add Photo"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

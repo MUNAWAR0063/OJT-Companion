@@ -46,6 +46,8 @@ const defaultCategories = [
   "Other",
 ]
 
+const starterDocumentTypes = ["Single-line diagram", "Datasheet", "Procedure", "Manual", "Inspection report"]
+
 const emptyForm: DocumentInput = {
   title: "",
   description: "",
@@ -310,15 +312,28 @@ export function DocumentsInteractive() {
 
       {documents.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <FileText className="h-11 w-11 text-muted-foreground" />
+          <CardContent className="flex flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+            <div className="rounded-lg bg-primary/10 p-3 text-primary">
+              <FileText className="h-8 w-8" />
+            </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No documents uploaded</h3>
               <p className="max-w-md text-sm text-muted-foreground">
-                Upload standards, diagrams, manuals, and datasheets for authenticated field reference.
+                Upload diagrams, datasheets, procedures, manuals, and field references.
               </p>
             </div>
-            <Button onClick={openUpload}><Upload className="mr-2 h-4 w-4" />Upload Document</Button>
+            <div className="flex max-w-xl flex-wrap justify-center gap-2">
+              {starterDocumentTypes.map((type) => (
+                <Badge key={type} variant="secondary">{type}</Badge>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={openUpload}><Upload className="h-4 w-4" />Upload Document</Button>
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => console.log("Add Document Link clicked")}>
+                <Link2 className="h-4 w-4" />
+                Add Document Link
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : filteredDocuments.length === 0 ? (
@@ -374,9 +389,9 @@ export function DocumentsInteractive() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Edit Document" : "Upload Document"}</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4 py-2">
             {!editingId && (
-              <div className="sm:col-span-2">
+              <div className="col-span-2">
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }}
@@ -393,14 +408,14 @@ export function DocumentsInteractive() {
                 <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" className="sr-only" onChange={handleFileInput} />
               </div>
             )}
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Title</label>
               <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Generator maintenance manual" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
               <Select value={form.category} onValueChange={(value) => setForm((current) => ({ ...current, category: value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -408,7 +423,7 @@ export function DocumentsInteractive() {
               <label className="text-sm font-medium">Tags</label>
               <Input value={form.tags.join(", ")} onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }))} placeholder="generator, maintenance, IEC" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Description</label>
               <Textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Purpose, revision, applicability, and field notes" />
             </div>
@@ -437,9 +452,9 @@ export function DocumentsInteractive() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => void saveDocument()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Upload Document"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={() => void saveDocument()} disabled={uploading}>{editingId ? "Save Changes" : uploading ? "Uploading..." : "Upload Document"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
   Activity,
@@ -37,6 +37,14 @@ import { useDisciplineWorkspace } from "@/lib/discipline/use-discipline-workspac
 
 const priorityRank: Record<PlannerPriority, number> = { follow_up: 0, high: 1, medium: 2, low: 3 }
 
+const onboardingItems = [
+  "Review your Learning Roadmap",
+  "Open Week 1 Planner",
+  "Complete your first task",
+  "Write your first Daily Journal",
+  "Add your first equipment observation",
+]
+
 function CountWidget({
   title,
   count,
@@ -56,17 +64,17 @@ function CountWidget({
 
   return (
     <Card className="h-full transition-shadow hover:shadow-md">
-      <CardContent className="flex h-full flex-col p-5">
-        <div className="w-fit rounded-lg bg-primary/10 p-2 text-primary">
-          <Icon className="h-5 w-5" />
+      <CardContent className="flex h-full min-w-0 flex-col p-3 sm:p-5">
+        <div className="w-fit rounded-lg bg-primary/10 p-1.5 text-primary sm:p-2">
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>
         <div>
-          <h3 className="mt-4 font-semibold">{title}</h3>
-          <p className="mt-2 text-2xl font-semibold tracking-tight">
+          <h3 className="mt-3 text-sm font-semibold sm:mt-4 sm:text-base">{title}</h3>
+          <p className="mt-1 text-lg font-semibold leading-tight tracking-tight sm:mt-2 sm:text-2xl">
             {count} {count === 1 ? countLabel : pluralLabel}
           </p>
         </div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3 mt-4 w-fit">
+        <Button asChild variant="ghost" size="sm" className="-ml-3 mt-3 w-fit px-3 sm:mt-4">
           <Link href={href}>Open <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
         </Button>
       </CardContent>
@@ -75,6 +83,7 @@ function CountWidget({
 }
 
 export function SprintDashboard() {
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const workspace = useDisciplineWorkspace()
   const progressSummary = useWorkspaceProgress()
   const roadmaps = useRoadmapStore((state) => state.roadmaps)
@@ -127,6 +136,20 @@ export function SprintDashboard() {
         )
         .slice(0, 4)
   }, [currentWeek?.weekNumber, plannerWeeks, selectedPlannerWeekId])
+
+  const currentWeekNumber = currentWeek?.weekNumber ?? 1
+  const currentFocus = currentWeek
+    ? `Week ${currentWeek.weekNumber} - ${currentWeek.title}`
+    : "Week 1 - Foundation at Grissik"
+
+  useEffect(() => {
+    setShowOnboarding(window.localStorage.getItem("ojt-onboarding-dismissed") !== "true")
+  }, [])
+
+  const dismissOnboarding = () => {
+    window.localStorage.setItem("ojt-onboarding-dismissed", "true")
+    setShowOnboarding(false)
+  }
 
   const activities = useMemo(() => {
     const items = [
@@ -208,8 +231,37 @@ export function SprintDashboard() {
 
   return (
     <div className="space-y-6 md:space-y-8">
+      {showOnboarding && (
+        <Card>
+          <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-semibold">Welcome to OJT Companion</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Complete these steps to start your OJT learning journey.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {onboardingItems.map((item) => (
+                  <div key={item} className="flex items-center gap-3 rounded-lg border px-3 py-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 sm:flex-row lg:flex-col">
+              <Button asChild>
+                <Link href="/learning/roadmap">Start Roadmap</Link>
+              </Button>
+              <Button variant="outline" onClick={dismissOnboarding}>Dismiss</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="overflow-hidden border-primary/20">
-        <CardContent className="grid gap-6 p-6 md:grid-cols-[1fr_260px] md:items-center md:p-8">
+        <CardContent className="grid gap-6 p-6 md:grid-cols-[1fr_312px] md:items-center md:p-8">
           <div>
             <div className="mb-3 flex items-center gap-2 text-primary">
               <TrendingUp className="h-5 w-5" />
@@ -237,20 +289,39 @@ export function SprintDashboard() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CheckCircle2 className="h-5 w-5 text-primary" />Today&apos;s Focus
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />Today&apos;s Focus
+                </CardTitle>
+                <p className="mt-1 truncate text-sm text-muted-foreground">
+                  {currentFocus}
+                </p>
+              </div>
+              <Button asChild size="sm" variant="ghost" className="h-8 shrink-0 px-2 sm:px-3">
+                <Link href="/team">Journal</Link>
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {focusItems.length ? focusItems.map(({ objective, week }) => (
-              <div key={objective.id} className="flex items-start gap-3 rounded-lg border p-3">
-                <div className="mt-1 h-2.5 w-2.5 rounded-full bg-primary" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{objective.title}</p>
-                  <p className="text-xs text-muted-foreground">Week {week.weekNumber} · {objective.estimatedHours}h estimated</p>
+              <div key={objective.id} className="rounded-lg border px-3 py-2.5">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium sm:text-base">{objective.title}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <Badge variant={objective.priority === "high" ? "default" : "secondary"}>
+                        {objective.priority.replace("_", " ")} priority
+                      </Badge>
+                      <Badge variant="outline">Week {week.weekNumber}</Badge>
+                      <Badge variant="outline">{objective.estimatedHours}h estimated</Badge>
+                    </div>
+                  </div>
+                  <Button asChild size="sm" variant="outline" className="h-8 justify-self-end px-3">
+                    <Link href="/calendar">Continue Task</Link>
+                  </Button>
                 </div>
-                <Badge variant={objective.priority === "high" ? "default" : "secondary"}>{objective.priority}</Badge>
               </div>
             )) : (
               <div className="rounded-lg border border-dashed p-8 text-center">
@@ -258,45 +329,43 @@ export function SprintDashboard() {
                 <p className="mt-1 text-xs text-muted-foreground">Add work in the Weekly Planner.</p>
               </div>
             )}
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/calendar">Open Weekly Planner</Link>
-            </Button>
           </CardContent>
         </Card>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5">
           <Card>
-            <CardContent className="space-y-4 p-5">
+            <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
               <div className="flex items-center justify-between">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary"><Plane className="h-5 w-5" /></div>
+                <div className="rounded-lg bg-primary/10 p-1.5 text-primary sm:p-2"><Plane className="h-4 w-4 sm:h-5 sm:w-5" /></div>
                 {currentTrip && <Badge variant="secondary">Trip {currentTrip.tripNumber}</Badge>}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Current Trip</p>
-                <h3 className="mt-1 text-lg font-semibold">{currentTrip?.name ?? "No active trip"}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{currentTrip?.location ?? "Create a roadmap to calculate the current trip."}</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">Current Trip</p>
+                <h3 className="mt-1 text-base font-semibold leading-tight sm:text-lg">{currentTrip?.name ?? "No active trip"}</h3>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{currentTrip?.location ?? "Create a roadmap to calculate the current trip."}</p>
               </div>
-              <Button asChild size="sm" variant="ghost" className="-ml-3"><Link href="/learning/roadmap">View roadmap <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>
+              <Button asChild size="sm" variant="ghost" className="-ml-3 px-3 text-xs sm:text-sm"><Link href="/learning/roadmap">View roadmap <ArrowRight className="ml-1.5 h-3.5 w-3.5 sm:ml-2" /></Link></Button>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="space-y-4 p-5">
+            <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
               <div className="flex items-center justify-between">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary"><Clock3 className="h-5 w-5" /></div>
-                {currentWeek && <Badge variant="outline">{currentWeek.progress}%</Badge>}
+                <div className="rounded-lg bg-primary/10 p-1.5 text-primary sm:p-2"><Clock3 className="h-4 w-4 sm:h-5 sm:w-5" /></div>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Current Week</p>
-                <h3 className="mt-1 text-lg font-semibold">{currentWeek ? `Week ${currentWeek.weekNumber}` : "No active week"}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{currentWeek?.title ?? "Create a roadmap to calculate the current week."}</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">Current Week</p>
+                <h3 className="mt-1 text-base font-semibold leading-tight sm:text-lg">{currentWeek ? `Week ${currentWeek.weekNumber}` : "No active week"}</h3>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{currentWeek?.title ?? "Create a roadmap to calculate the current week."}</p>
               </div>
-              <Progress value={currentWeek?.progress ?? 0} />
+              <Button asChild size="sm" variant="outline" className="w-full px-2 text-xs sm:text-sm">
+                <Link href="/calendar">Continue Week {currentWeekNumber}</Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <CountWidget title="Equipment" count={equipment.length} countLabel="equipment item" href="/equipment" icon={CircuitBoard} />
         <CountWidget title="Knowledge" count={articles.length} countLabel="article" href="/tasks" icon={BookOpen} />
         <CountWidget title="Journal" count={journalEntries.length} countLabel="entry" href="/team" icon={NotebookPen} />

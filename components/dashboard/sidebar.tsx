@@ -2,8 +2,8 @@
 
 import {
   LayoutDashboard,
-  GraduationCap,
   Map,
+  Route,
   CalendarRange,
   NotebookPen,
   Zap,
@@ -13,9 +13,6 @@ import {
   BookMarked,
   FileText,
   Images,
-  BarChart3,
-  TrendingUp,
-  FileBarChart,
   Bell,
   Settings,
   ChevronDown,
@@ -48,11 +45,11 @@ const isGroup = (entry: NavEntry): entry is NavGroup => "children" in entry
 
 const navEntries: NavEntry[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Map, label: "Learning Roadmap", href: "/learning/roadmap" },
   {
-    icon: GraduationCap,
-    label: "Learning",
+    icon: Map,
+    label: "Learning Roadmap",
     children: [
+      { icon: Route, label: "Roadmap Overview", href: "/learning/roadmap" },
       { icon: CalendarRange, label: "Weekly Planner", href: "/calendar" },
       { icon: NotebookPen, label: "Daily Journal", href: "/team" },
     ],
@@ -66,14 +63,6 @@ const navEntries: NavEntry[] = [
       { icon: BookMarked, label: "Standards Library", href: "/standards" },
       { icon: FileText, label: "Documents", href: "/documents" },
       { icon: Images, label: "Photo Gallery", href: "/gallery" },
-    ],
-  },
-  {
-    icon: BarChart3,
-    label: "Progress",
-    children: [
-      { icon: TrendingUp, label: "Competency", href: "/competencies" },
-      { icon: FileBarChart, label: "Reports", href: "/reports" },
     ],
   },
   { icon: Bell, label: "Notification Center", href: "/notifications" },
@@ -221,8 +210,8 @@ export function Sidebar({ variant = "responsive", onNavigate }: SidebarProps) {
                   className={cn(
                     "relative flex min-h-11 w-full items-center rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isExpanded ? "gap-3 px-3" : "justify-center px-0",
-                    hasActiveChild && !isOpen
-                      ? "text-foreground bg-secondary/60"
+                    hasActiveChild
+                      ? "bg-secondary/70 text-foreground"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     hasActiveChild && "before:absolute before:left-0 before:top-2 before:h-7 before:w-1 before:rounded-r-full before:bg-primary",
                     hoveredItem === entry.label && isExpanded && "translate-x-1",

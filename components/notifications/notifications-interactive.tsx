@@ -150,7 +150,7 @@ export function NotificationsInteractive() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Notification History</p>
@@ -163,7 +163,7 @@ export function NotificationsInteractive() {
             <p className="mt-2 text-3xl font-semibold">{unreadCount}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="col-span-2 sm:col-span-1">
           <CardContent className="flex h-full items-center justify-center p-5">
             <Button onClick={openReminder} className="w-full">
               <Plus className="mr-2 h-4 w-4" />Create Reminder
@@ -173,16 +173,16 @@ export function NotificationsInteractive() {
       </div>
 
       <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2">
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as "all" | "unread")}>
-            <SelectTrigger className="sm:w-44" aria-label="Filter read status"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full min-w-0 sm:w-44" aria-label="Filter read status"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All notifications</SelectItem>
               <SelectItem value="unread">Unread only</SelectItem>
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as NotificationType | "all")}>
-            <SelectTrigger className="sm:w-56" aria-label="Filter notification type"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full min-w-0 sm:w-56" aria-label="Filter notification type"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               {(Object.keys(notificationConfig) as NotificationType[]).map((type) => (
@@ -191,15 +191,19 @@ export function NotificationsInteractive() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {unreadCount > 0 && (
-            <Button variant="outline" onClick={markAllAsRead}>
+            <Button className="w-full px-2 sm:px-4" variant="outline" onClick={markAllAsRead}>
               <CheckCheck className="mr-2 h-4 w-4" />Mark All as Read
             </Button>
           )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" disabled={notifications.length === 0}>
+              <Button
+                className={unreadCount > 0 ? "w-full px-2 sm:px-4" : "col-span-2 w-full"}
+                variant="outline"
+                disabled={notifications.length === 0}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />Reset History
               </Button>
             </AlertDialogTrigger>

@@ -1030,3 +1030,190 @@ Creating turbopack project {
  GET /calendar?week=ra93maoh 200 in 410ms (compile: 13ms, proxy.ts: 346ms, render: 51ms)
  GET /notifications 200 in 421ms (compile: 8ms, proxy.ts: 372ms, render: 41ms)
  GET /notifications 200 in 1450ms (compile: 462ms, proxy.ts: 708ms, render: 281ms)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                GET /competencies 200 in 1975ms (compile: 507ms, proxy.ts: 1087ms, render: 381ms)
+ GET /learning/roadmap 200 in 506ms (compile: 17ms, proxy.ts: 380ms, render: 109ms)
+ GET /dashboard 200 in 467ms (compile: 16ms, proxy.ts: 344ms, render: 106ms)
+ GET /learning/roadmap 200 in 1082ms (compile: 22ms, proxy.ts: 957ms, render: 104ms)
+ GET /calendar 200 in 340ms (compile: 19ms, proxy.ts: 263ms, render: 58ms)
+ GET /team 200 in 822ms (compile: 17ms, proxy.ts: 727ms, render: 78ms)
+ GET /equipment 200 in 819ms (compile: 413ms, proxy.ts: 259ms, render: 147ms)
+ GET /tasks 200 in 879ms (compile: 363ms, proxy.ts: 355ms, render: 161ms)
+ GET /standards 200 in 950ms (compile: 336ms, proxy.ts: 410ms, render: 204ms)
+ GET /documents 200 in 1048ms (compile: 324ms, proxy.ts: 464ms, render: 260ms)
+ GET /gallery 200 in 663ms (compile: 252ms, proxy.ts: 171ms, render: 240ms)
+ GET /competencies 200 in 600ms (compile: 20ms, proxy.ts: 502ms, render: 78ms)
+ GET /competencies 200 in 1196ms (compile: 25ms, proxy.ts: 321ms, render: 851ms)
+ GET /dashboard 200 in 1996ms (compile: 25ms, proxy.ts: 1862ms, render: 109ms)
+ GET /learning/roadmap 200 in 615ms (compile: 35ms, proxy.ts: 429ms, render: 151ms)
+ GET /dashboard 200 in 324ms (compile: 18ms, proxy.ts: 208ms, render: 97ms)
+ GET /learning/roadmap 200 in 914ms (compile: 24ms, proxy.ts: 729ms, render: 161ms)
+ GET /calendar 200 in 668ms (compile: 32ms, proxy.ts: 470ms, render: 166ms)
+ GET /competencies 200 in 405ms (compile: 17ms, proxy.ts: 319ms, render: 70ms)
+ ✓ Compiled in 1692ms
+ GET /dashboard 200 in 1965ms (compile: 460ms, proxy.ts: 1350ms, render: 155ms)
+ GET /learning/roadmap 200 in 3.3s (compile: 1125ms, proxy.ts: 2.0s, render: 204ms)
+ ✓ Compiled in 1160ms
+ GET /dashboard 200 in 4.7s (compile: 386ms, proxy.ts: 3.3s, render: 1060ms)
+ GET /dashboard 200 in 1743ms (compile: 22ms, proxy.ts: 1429ms, render: 292ms)
+ GET /logout 200 in 2.1s (compile: 913ms, proxy.ts: 818ms, render: 321ms)
+ GET /login?next=%2Flogout 200 in 3.5s (compile: 3ms, proxy.ts: 1207ms, render: 2.3s)
+ GET /login 200 in 2.5s (compile: 463ms, proxy.ts: 147ms, render: 1914ms)
+ GET /dashboard 200 in 1164ms (compile: 102ms, proxy.ts: 880ms, render: 182ms)
+ GET /dashboard 200 in 373ms (compile: 13ms, proxy.ts: 224ms, render: 136ms)
+ GET /learning/roadmap 200 in 296ms (compile: 7ms, proxy.ts: 248ms, render: 40ms)
+ GET /calendar 200 in 1214ms (compile: 559ms, proxy.ts: 343ms, render: 312ms)
+ ✓ Compiled in 475ms
+ GET /calendar 200 in 789ms (compile: 15ms, proxy.ts: 671ms, render: 103ms)
+ ✓ Compiled in 561ms
+ ✓ Compiled in 643ms
+ GET /team 200 in 4.6s (compile: 664ms, proxy.ts: 2.8s, render: 1146ms)
+ GET /dashboard 200 in 1867ms (compile: 546ms, proxy.ts: 1019ms, render: 302ms)
+ GET /dashboard 200 in 935ms (compile: 15ms, proxy.ts: 787ms, render: 133ms)
+ GET /dashboard 200 in 1286ms (compile: 97ms, proxy.ts: 395ms, render: 794ms)
+ ✓ Compiled in 2.9s
+ GET /dashboard 200 in 1958ms (compile: 320ms, proxy.ts: 517ms, render: 1121ms)
+ GET /dashboard 200 in 618ms (compile: 16ms, proxy.ts: 482ms, render: 120ms)
+ GET /dashboard 200 in 530ms (compile: 7ms, proxy.ts: 475ms, render: 48ms)
+ ✓ Compiled in 715ms
+ ✓ Compiled in 547ms
+ GET /dashboard 200 in 1905ms (compile: 203ms, proxy.ts: 1174ms, render: 528ms)
+ ✓ Compiled in 1684ms
+ GET /dashboard 200 in 2.1s (compile: 611ms, proxy.ts: 509ms, render: 1002ms)
+ GET /team 200 in 3.2s (compile: 27ms, proxy.ts: 2.8s, render: 289ms)
+ GET /team 200 in 1918ms (compile: 12ms, proxy.ts: 1818ms, render: 88ms)
+ GET /dashboard 200 in 252ms (compile: 11ms, proxy.ts: 168ms, render: 73ms)
+ GET /calendar 200 in 961ms (compile: 13ms, proxy.ts: 830ms, render: 118ms)
+ GET /dashboard 200 in 212ms (compile: 9ms, proxy.ts: 169ms, render: 34ms)
+ GET /learning/roadmap 200 in 3.9s (compile: 10ms, proxy.ts: 3.8s, render: 61ms)
+ ✓ Compiled in 791ms
+ GET /calendar 200 in 1232ms (compile: 41ms, proxy.ts: 1005ms, render: 186ms)
+ ✓ Compiled in 831ms
+ GET /team 200 in 499ms (compile: 17ms, proxy.ts: 426ms, render: 56ms)
+ GET /equipment 200 in 1190ms (compile: 613ms, proxy.ts: 355ms, render: 222ms)
+ GET /dashboard 200 in 1346ms (compile: 878ms, proxy.ts: 245ms, render: 223ms)
+ GET /dashboard 200 in 2.0s (compile: 15ms, proxy.ts: 1198ms, render: 813ms)
+ ✓ Compiled in 1501ms
+ ✓ Compiled in 1125ms
+ GET /learning/roadmap 200 in 1395ms (compile: 430ms, proxy.ts: 879ms, render: 87ms)
+ GET /dashboard 200 in 528ms (compile: 185ms, proxy.ts: 206ms, render: 137ms)
+ ✓ Compiled in 879ms
+ GET /learning/roadmap 200 in 748ms (compile: 12ms, proxy.ts: 689ms, render: 47ms)
+ GET /calendar 200 in 297ms (compile: 57ms, proxy.ts: 173ms, render: 67ms)
+ ✓ Compiled in 634ms
+ GET /dashboard 200 in 1062ms (compile: 244ms, proxy.ts: 628ms, render: 190ms)
+ GET /equipment 200 in 283ms (compile: 29ms, proxy.ts: 217ms, render: 37ms)
+ GET /tasks 200 in 7.1s (compile: 236ms, proxy.ts: 6.5s, render: 334ms)
+ GET /equipment 200 in 1069ms (compile: 57ms, proxy.ts: 602ms, render: 409ms)
+ GET /standards 200 in 1017ms (compile: 591ms, proxy.ts: 258ms, render: 168ms)
+ GET /documents 200 in 1472ms (compile: 719ms, proxy.ts: 457ms, render: 296ms)
+ GET /gallery 200 in 1205ms (compile: 567ms, proxy.ts: 467ms, render: 171ms)
+ GET /notifications 200 in 1978ms (compile: 663ms, proxy.ts: 1138ms, render: 177ms)
+ GET /notifications 200 in 747ms (compile: 51ms, proxy.ts: 402ms, render: 294ms)
+ GET /notifications 200 in 896ms (compile: 10ms, proxy.ts: 839ms, render: 47ms)
+ GET /dashboard 200 in 792ms (compile: 21ms, proxy.ts: 268ms, render: 503ms)
+ GET /learning/roadmap 200 in 3.7s (compile: 15ms, proxy.ts: 3.7s, render: 56ms)
+ GET /dashboard 200 in 1232ms (compile: 20ms, proxy.ts: 1121ms, render: 92ms)
+ ✓ Compiled in 1360ms
+ GET /calendar 200 in 841ms (compile: 18ms, proxy.ts: 713ms, render: 111ms)
+ GET /team 200 in 627ms (compile: 58ms, proxy.ts: 461ms, render: 108ms)
+ ✓ Compiled in 1922ms
+ GET /dashboard 200 in 1766ms (compile: 672ms, proxy.ts: 946ms, render: 148ms)
+ GET /equipment 200 in 603ms (compile: 19ms, proxy.ts: 482ms, render: 102ms)
+ GET /dashboard 200 in 572ms (compile: 16ms, proxy.ts: 466ms, render: 90ms)
+ ✓ Compiled in 4s
+ ✓ Compiled in 1092ms
+ ✓ Compiled in 3.9s
+ GET /equipment 200 in 1062ms (compile: 22ms, proxy.ts: 937ms, render: 104ms)
+ GET /tasks 200 in 447ms (compile: 19ms, proxy.ts: 341ms, render: 86ms)
+ GET /standards 200 in 444ms (compile: 36ms, proxy.ts: 273ms, render: 136ms)
+ GET /equipment 200 in 666ms (compile: 17ms, proxy.ts: 561ms, render: 88ms)
+ GET /notifications 200 in 1807ms (compile: 50ms, proxy.ts: 510ms, render: 1247ms)
+ GET /equipment 200 in 2.7s (compile: 546ms, proxy.ts: 370ms, render: 1754ms)
+ GET /learning/roadmap 200 in 3.4s (compile: 26ms, proxy.ts: 2.6s, render: 772ms)
+ GET /dashboard 200 in 6.2s (compile: 3.7s, proxy.ts: 350ms, render: 2.1s)
+ GET /learning/roadmap 200 in 3.0s (compile: 169ms, proxy.ts: 727ms, render: 2.1s)
+ GET /dashboard 200 in 5.2s (compile: 572ms, proxy.ts: 334ms, render: 4.3s)
+ GET /equipment 200 in 2.2s (compile: 312ms, proxy.ts: 757ms, render: 1165ms)
+ ✓ Compiled in 2.7s
+ GET /tasks 200 in 763ms (compile: 23ms, proxy.ts: 531ms, render: 209ms)
+ ✓ Compiled in 1307ms
+ GET /standards 200 in 519ms (compile: 37ms, proxy.ts: 346ms, render: 136ms)
+ ✓ Compiled in 1375ms
+ GET /equipment 200 in 1767ms (compile: 682ms, proxy.ts: 765ms, render: 319ms)
+ GET /documents 200 in 1801ms (compile: 41ms, proxy.ts: 775ms, render: 985ms)
+ ✓ Compiled in 1298ms
+ GET /login?next=%2Fgallery 200 in 657ms (compile: 95ms, proxy.ts: 59ms, render: 503ms)
+ GET /login?next=%2Fdashboard 200 in 733ms (compile: 102ms, proxy.ts: 95ms, render: 536ms)
+ GET /login?next=%2Fdashboard 200 in 389ms (compile: 39ms, proxy.ts: 18ms, render: 332ms)
+ GET /gallery 200 in 761ms (compile: 20ms, proxy.ts: 629ms, render: 112ms)
+ ✓ Compiled in 2.2s
+ GET /notifications 200 in 995ms (compile: 38ms, proxy.ts: 786ms, render: 170ms)
+ ✓ Compiled in 1636ms
+ ✓ Compiled in 1479ms
+ ○ Compiling /settings ...
+ GET /settings 200 in 9.9s (compile: 8.1s, proxy.ts: 773ms, render: 1001ms)
+ GET /settings 200 in 1364ms (compile: 128ms, proxy.ts: 588ms, render: 648ms)
+ ✓ Compiled in 1064ms
+ GET /notifications 200 in 1640ms (compile: 481ms, proxy.ts: 897ms, render: 262ms)
+ GET /help 200 in 1872ms (compile: 772ms, proxy.ts: 773ms, render: 326ms)
+ ✓ Compiled in 1815ms
+ ✓ Compiled in 1234ms
+ ✓ Compiled in 2s
+ ✓ Compiled in 1410ms
+ ✓ Compiled in 1045ms
+ GET /help 200 in 5.7s (compile: 2.7s, proxy.ts: 1776ms, render: 1228ms)
+ GET /dashboard 200 in 900ms (compile: 25ms, proxy.ts: 764ms, render: 111ms)
+ GET /notifications 200 in 742ms (compile: 24ms, proxy.ts: 632ms, render: 86ms)
+ GET /notifications 200 in 672ms (compile: 32ms, proxy.ts: 552ms, render: 88ms)
+ GET /help 200 in 308ms (compile: 40ms, proxy.ts: 183ms, render: 85ms)
+ GET /notifications 200 in 1233ms (compile: 18ms, proxy.ts: 1099ms, render: 115ms)
+ GET /gallery 200 in 1476ms (compile: 473ms, proxy.ts: 192ms, render: 811ms)
+ GET /documents 200 in 3.1s (compile: 1462ms, proxy.ts: 467ms, render: 1182ms)
+ GET /equipment 200 in 641ms (compile: 21ms, proxy.ts: 348ms, render: 272ms)
+ ✓ Compiled in 1771ms
+ GET /dashboard 200 in 738ms (compile: 27ms, proxy.ts: 470ms, render: 241ms)
+ ✓ Compiled in 2.1s
+ GET /help 200 in 1814ms (compile: 420ms, proxy.ts: 1232ms, render: 162ms)
+ ✓ Compiled in 1021ms
+ GET /learning/roadmap 200 in 888ms (compile: 21ms, proxy.ts: 753ms, render: 113ms)
+ ✓ Compiled in 1742ms
+ GET /calendar 200 in 416ms (compile: 56ms, proxy.ts: 261ms, render: 99ms)
+ GET /learning/roadmap 200 in 616ms (compile: 16ms, proxy.ts: 369ms, render: 231ms)
+ GET /team 200 in 777ms (compile: 27ms, proxy.ts: 330ms, render: 421ms)
+ ✓ Compiled in 1363ms
+ ✓ Compiled in 1277ms
+ GET /help 200 in 1069ms (compile: 592ms, proxy.ts: 260ms, render: 217ms)
+ ✓ Compiled in 1481ms
+ ✓ Compiled in 1495ms
+ ✓ Compiled in 1074ms
+ GET /equipment 200 in 1111ms (compile: 36ms, proxy.ts: 955ms, render: 120ms)
+ ✓ Compiled in 6.5s
+ GET /tasks 200 in 1534ms (compile: 654ms, proxy.ts: 611ms, render: 269ms)
+ GET /standards 200 in 1771ms (compile: 889ms, proxy.ts: 578ms, render: 303ms)
+ GET /documents 200 in 3.2s (compile: 121ms, proxy.ts: 2.8s, render: 281ms)
+ GET /gallery 200 in 517ms (compile: 20ms, proxy.ts: 426ms, render: 71ms)
+ GET /equipment 200 in 3.7s (compile: 2.8s, proxy.ts: 313ms, render: 664ms)
+ GET /notifications 200 in 591ms (compile: 18ms, proxy.ts: 437ms, render: 136ms)
+ GET /help 200 in 2.2s (compile: 1275ms, proxy.ts: 503ms, render: 385ms)
+ GET /equipment 200 in 856ms (compile: 27ms, proxy.ts: 516ms, render: 313ms)
+ ✓ Compiled in 1396ms
+ ✓ Compiled in 936ms
+ ✓ Compiled in 756ms
+ ✓ Compiled in 1089ms
+ GET /tasks 200 in 2.4s (compile: 1362ms, proxy.ts: 683ms, render: 343ms)
+ ✓ Compiled in 7.1s
+ GET /standards 200 in 1416ms (compile: 778ms, proxy.ts: 336ms, render: 301ms)
+ GET /dashboard 200 in 1878ms (compile: 209ms, proxy.ts: 1416ms, render: 253ms)
+ GET /documents 200 in 901ms (compile: 356ms, proxy.ts: 264ms, render: 282ms)
+ GET /gallery 200 in 1449ms (compile: 432ms, proxy.ts: 836ms, render: 181ms)
+ ✓ Compiled in 591ms
+ ✓ Compiled in 1309ms
+ ✓ Compiled in 705ms
+ ✓ Compiled in 5.5s
+ ✓ Compiled in 1451ms
+ GET /documents 200 in 1280ms (compile: 344ms, proxy.ts: 686ms, render: 250ms)
+ ✓ Compiled in 503ms
+ ✓ Compiled in 2.6s
+ ✓ Compiled in 5.8s
+ ✓ Compiled in 1070ms
+ GET /dashboard 200 in 4.2s (compile: 333ms, proxy.ts: 1734ms, render: 2.1s)

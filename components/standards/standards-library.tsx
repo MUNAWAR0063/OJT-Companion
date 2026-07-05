@@ -41,6 +41,8 @@ const organizations: StandardsOrganization[] = [
   "Company Standards",
 ]
 
+const starterStandardCategories = ["IEC", "IEEE", "NFPA", "API", "ISA", "NEMA", "Company Standard"]
+
 const organizationStyles: Record<StandardsOrganization, string> = {
   IEC: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   IEEE: "border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300",
@@ -222,15 +224,25 @@ export function StandardsLibrary() {
 
       {standards.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <BookMarked className="h-11 w-11 text-muted-foreground" />
+          <CardContent className="flex flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+            <div className="rounded-lg bg-primary/10 p-3 text-primary">
+              <BookMarked className="h-8 w-8" />
+            </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No standards saved</h3>
               <p className="max-w-md text-sm text-muted-foreground">
-                Build a searchable index of international and company engineering requirements.
+                Build a searchable index of engineering standards and company requirements.
               </p>
             </div>
-            <Button onClick={() => openCreate()}><Plus className="mr-2 h-4 w-4" />Add First Standard</Button>
+            <div className="flex max-w-xl flex-wrap justify-center gap-2">
+              {starterStandardCategories.map((category) => (
+                <Badge key={category} variant="secondary">{category}</Badge>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={() => openCreate()}><Plus className="h-4 w-4" />Add First Standard</Button>
+              <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => openCreate("IEC")}>Add from Category</Button>
+            </div>
           </CardContent>
         </Card>
       ) : filteredStandards.length === 0 ? (
@@ -289,11 +301,11 @@ export function StandardsLibrary() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Edit Standard" : "Add Standard"}</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4 py-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Organization</label>
               <Select value={form.organization} onValueChange={(value) => setForm((current) => ({ ...current, organization: value as StandardsOrganization }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{organizations.map((organization) => <SelectItem key={organization} value={organization}>{organization}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -301,15 +313,15 @@ export function StandardsLibrary() {
               <label className="text-sm font-medium">Reference</label>
               <Input value={form.reference} onChange={(event) => setForm((current) => ({ ...current, reference: event.target.value }))} placeholder="IEC 60034-1:2022" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Title</label>
               <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Rotating electrical machines — Rating and performance" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Summary</label>
               <Textarea value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} placeholder="Summarize scope, key requirements, limits, and practical application." className="min-h-32" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Notes</label>
               <Textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Interpretation notes, clauses to review, deviations, or company guidance." className="min-h-28" />
             </div>
@@ -330,9 +342,9 @@ export function StandardsLibrary() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveStandard}>{editingId ? "Save Changes" : "Add Standard"}</Button>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-end">
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="h-auto min-h-9 min-w-0 whitespace-normal px-2 py-2 text-xs leading-tight sm:h-9 sm:whitespace-nowrap sm:px-4 sm:text-sm" onClick={saveStandard}>{editingId ? "Save Changes" : "Add Standard"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

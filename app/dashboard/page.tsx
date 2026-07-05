@@ -12,7 +12,7 @@ export default function DashboardPage() {
         <main className="app-main-content flex-1 p-4 md:p-6 min-[1280px]:p-8">
           <Header
             title="Dashboard"
-            description="Your competency and learning progress overview for this OJT assignment."
+            description="Your next actions and learning workspace for this OJT assignment."
           />
 
           <div className="mt-8 md:mt-10">

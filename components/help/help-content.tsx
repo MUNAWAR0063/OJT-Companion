@@ -2,7 +2,6 @@
 
 import { type ChangeEvent, type FormEvent, useMemo, useRef, useState } from "react"
 import {
-  AlertCircle,
   Bell,
   BookOpen,
   Bug,
@@ -121,16 +120,16 @@ const faqs = [
   {
     category: "Login",
     question: "What should I do if I cannot log in?",
-    answer: "Check your registered email, confirm your password, and contact the administrator if your account is locked or has not been activated.",
+    answer: "Login can fail because of a wrong password, inactive account, or network interruption. Reset your password, confirm your registered email, and contact the administrator if access remains blocked.",
     relatedPages: ["Login", "Profile"],
-    lastUpdated: "2026-06-25",
+    lastUpdated: "2026-07-05",
   },
   {
     category: "Dashboard",
     question: "Why does my dashboard look empty?",
-    answer: "The dashboard only shows records you have created. Add roadmap, planner, equipment, journal, knowledge, or document data to populate it.",
+    answer: "A new workspace, missing roadmap, or empty planner can leave the dashboard blank. Create a roadmap or weekly plan, then add field notes, equipment records, knowledge articles, or documents.",
     relatedPages: ["Dashboard", "Weekly Planner"],
-    lastUpdated: "2026-06-28",
+    lastUpdated: "2026-07-05",
   },
   {
     category: "Weekly Planner",
@@ -202,9 +201,61 @@ const faqs = [
     relatedPages: ["Notifications", "Settings"],
     lastUpdated: "2026-06-22",
   },
+  {
+    category: "Troubleshooting",
+    question: "Why is my data not saving?",
+    answer: "Saving can fail when browser storage is unavailable, your session has expired, or synchronization is interrupted. Refresh the page, confirm you are signed in, and retry the save action before submitting an issue report.",
+    relatedPages: ["Application Settings", "Report Issue"],
+    lastUpdated: "2026-07-05",
+  },
+  {
+    category: "Troubleshooting",
+    question: "Why is my progress not updating?",
+    answer: "Progress may not update when source records are incomplete, a planner task is unsaved, or module data is inactive. Confirm that records are saved and tasks or milestones have a completed status.",
+    relatedPages: ["Competencies", "Weekly Planner"],
+    lastUpdated: "2026-07-05",
+  },
+  {
+    category: "Troubleshooting",
+    question: "How do I resolve synchronization problems?",
+    answer: "Synchronization can fail because of an offline connection, expired authentication, or degraded database service. Check System Status, reconnect to the network, and sign in again if needed.",
+    relatedPages: ["System Status", "Login"],
+    lastUpdated: "2026-07-05",
+  },
+  {
+    category: "Troubleshooting",
+    question: "What should I do when the application is slow?",
+    answer: "Large uploads, many open browser tabs, or low device memory can reduce performance. Close unused tabs, reduce screenshot size, and retry after the browser has cleared pending work.",
+    relatedPages: ["Report Issue", "Gallery"],
+    lastUpdated: "2026-07-05",
+  },
 ]
 
 const announcements = [
+  {
+    title: "Responsive form layouts improved",
+    date: "2026-07-06",
+    category: "UI Updates",
+    description: "Equipment, knowledge, standards, documents, and gallery forms now use compact paired fields on mobile screens.",
+  },
+  {
+    title: "Notification center layout refined",
+    date: "2026-07-06",
+    category: "UI Updates",
+    description: "Notification statistics, filters, and history actions now use balanced responsive layouts on mobile devices.",
+  },
+  {
+    title: "Help Center mobile cards optimized",
+    date: "2026-07-06",
+    category: "UI Updates",
+    description: "Quick Actions and System Status now use two-column mobile layouts with clearer spacing and visible status badges.",
+  },
+  {
+    title: "Troubleshooting guidance moved into FAQ",
+    date: "2026-07-06",
+    category: "Help Center",
+    description: "Common login, saving, progress, synchronization, dashboard, and performance solutions are now available directly in FAQ.",
+  },
   {
     title: "Competency progress calculation updated",
     date: "2026-07-01",
@@ -227,48 +278,12 @@ const announcements = [
     title: "Help Center released",
     date: "2026-06-29",
     category: "Feature Releases",
-    description: "The new support center includes searchable FAQ, issue reporting, system status, troubleshooting, and feedback.",
+    description: "The new support center includes searchable FAQ and troubleshooting guidance, issue reporting, system status, and feedback.",
   },
 ]
 
-const troubleshooting = [
-  {
-    problem: "Cannot Login",
-    causes: ["Wrong password", "Inactive account", "Network interruption"],
-    solution: "Reset your password, confirm your registered email, and contact the administrator if access remains blocked.",
-    relatedDocumentation: "Login FAQ",
-  },
-  {
-    problem: "Data Not Saving",
-    causes: ["Browser storage unavailable", "Session expired", "Sync interrupted"],
-    solution: "Refresh the page, confirm you are signed in, and retry the save action before submitting an issue report.",
-    relatedDocumentation: "Application Settings",
-  },
-  {
-    problem: "Progress Not Updating",
-    causes: ["No completed source records", "Unsaved planner task", "Inactive module data"],
-    solution: "Check that records are saved and tasks or milestones have a completed status.",
-    relatedDocumentation: "Managing Competencies",
-  },
-  {
-    problem: "Dashboard Empty",
-    causes: ["New workspace", "No roadmap selected", "No planner objectives"],
-    solution: "Create a roadmap or weekly plan, then add field notes, equipment records, or knowledge articles.",
-    relatedDocumentation: "Getting Started",
-  },
-  {
-    problem: "Sync Problems",
-    causes: ["Offline connection", "Authentication expired", "Database service degraded"],
-    solution: "Check system status, reconnect to the network, and sign in again if needed.",
-    relatedDocumentation: "System Status",
-  },
-  {
-    problem: "Slow Performance",
-    causes: ["Large uploads", "Many open browser tabs", "Low device memory"],
-    solution: "Close unused tabs, reduce screenshot size, and retry after the browser has cleared pending work.",
-    relatedDocumentation: "Report a Bug",
-  },
-]
+const FAQS_PER_PAGE = 5
+const ANNOUNCEMENTS_PER_PAGE = 4
 
 const statuses = [
   { name: "Application", value: "Operational", icon: MonitorCheck },
@@ -280,11 +295,6 @@ const statuses = [
   { name: "Deployment Date", value: "2026-07-01", icon: Clock3 },
   { name: "Last Sync", value: "Local workspace", icon: Gauge },
 ]
-
-const searchableTroubleshooting = troubleshooting.map((item) => ({
-  title: item.problem,
-  description: `${item.causes.join(" ")} ${item.solution} ${item.relatedDocumentation}`,
-}))
 
 function includesQuery(value: string, query: string) {
   return value.toLowerCase().includes(query)
@@ -312,6 +322,8 @@ export function HelpContent() {
   const [issueErrors, setIssueErrors] = useState<Partial<Record<keyof IssueForm, string>>>({})
   const [rating, setRating] = useState(0)
   const [feedbackComment, setFeedbackComment] = useState("")
+  const [faqPage, setFaqPage] = useState(1)
+  const [announcementPage, setAnnouncementPage] = useState(1)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const normalizedQuery = query.trim().toLowerCase()
 
@@ -321,6 +333,13 @@ export function HelpContent() {
       [faq.category, faq.question, faq.answer, faq.relatedPages.join(" ")].some((item) => includesQuery(item, normalizedQuery))
     )
   }, [normalizedQuery])
+
+  const faqPageCount = Math.max(1, Math.ceil(filteredFaqs.length / FAQS_PER_PAGE))
+  const currentFaqPage = Math.min(faqPage, faqPageCount)
+  const paginatedFaqs = filteredFaqs.slice(
+    (currentFaqPage - 1) * FAQS_PER_PAGE,
+    currentFaqPage * FAQS_PER_PAGE
+  )
 
   const filteredGuides = useMemo(() => {
     if (!normalizedQuery) return userGuides
@@ -341,14 +360,12 @@ export function HelpContent() {
     )
   }, [normalizedQuery])
 
-  const filteredTroubleshooting = useMemo(() => {
-    if (!normalizedQuery) return troubleshooting
-    return troubleshooting.filter((item) =>
-      searchableTroubleshooting.some(
-        (searchable) => searchable.title === item.problem && includesQuery(`${searchable.title} ${searchable.description}`, normalizedQuery)
-      )
-    )
-  }, [normalizedQuery])
+  const announcementPageCount = Math.max(1, Math.ceil(filteredAnnouncements.length / ANNOUNCEMENTS_PER_PAGE))
+  const currentAnnouncementPage = Math.min(announcementPage, announcementPageCount)
+  const paginatedAnnouncements = filteredAnnouncements.slice(
+    (currentAnnouncementPage - 1) * ANNOUNCEMENTS_PER_PAGE,
+    currentAnnouncementPage * ANNOUNCEMENTS_PER_PAGE
+  )
 
   const updateIssueField = (field: keyof IssueForm, value: string) => {
     setIssueForm((current) => ({ ...current, [field]: value }))
@@ -416,7 +433,7 @@ export function HelpContent() {
   }
 
   const searchResults = normalizedQuery
-    ? filteredFaqs.length + filteredGuides.length + filteredAnnouncements.length + filteredTroubleshooting.length
+    ? filteredFaqs.length + filteredGuides.length + filteredAnnouncements.length
     : null
 
   return (
@@ -436,7 +453,11 @@ export function HelpContent() {
             className="h-14 rounded-xl pl-12 text-base"
             placeholder="How can we help you?"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setFaqPage(1)
+              setAnnouncementPage(1)
+            }}
           />
         </div>
         {searchResults !== null ? (
@@ -446,14 +467,14 @@ export function HelpContent() {
 
       <section aria-labelledby="quick-actions" className="space-y-4">
         <SectionHeader title="Quick Actions" description="Jump directly to common support tasks." />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
           {quickActions.map((action) => (
-            <Card key={action.id} className="group flex flex-col p-4 transition-all hover:border-primary/40 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Card key={action.id} className="group flex min-w-0 flex-col p-3 transition-all hover:border-primary/40 hover:shadow-md sm:p-4">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary sm:mb-4 sm:h-11 sm:w-11">
                 <action.icon className="h-5 w-5" />
               </div>
-              <h3 id="quick-actions" className="font-semibold">{action.title}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{action.description}</p>
+              <h3 id="quick-actions" className="break-words text-sm font-semibold sm:text-base">{action.title}</h3>
+              <p className="mt-2 flex-1 text-xs text-muted-foreground sm:text-sm">{action.description}</p>
               <Button asChild className="mt-4 w-full" variant="outline">
                 <a href={action.href}>Open</a>
               </Button>
@@ -462,42 +483,88 @@ export function HelpContent() {
         </div>
       </section>
 
-      <div className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="space-y-8">
-          <section id="faq" className="space-y-4 scroll-mt-24">
+      <div className="grid gap-x-8 gap-y-6 xl:grid-cols-[1.35fr_0.65fr]">
+        <div className="space-y-8 xl:contents">
+          <section id="faq" className="space-y-4 scroll-mt-24 xl:col-start-1 xl:row-start-1">
             <SectionHeader title="Frequently Asked Questions" description="Searchable answers by workspace area." />
             <Card className="p-4 md:p-6">
               {filteredFaqs.length ? (
-                <Accordion type="single" collapsible className="w-full">
-                  {filteredFaqs.map((faq) => (
-                    <AccordionItem key={`${faq.category}-${faq.question}`} value={faq.question}>
-                      <AccordionTrigger className="min-h-11">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{faq.category}</Badge>
-                            <span>{faq.question}</span>
+                <>
+                  <Accordion type="single" collapsible className="w-full">
+                    {paginatedFaqs.map((faq) => (
+                      <AccordionItem key={`${faq.category}-${faq.question}`} value={faq.question}>
+                        <AccordionTrigger className="min-h-11">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline">{faq.category}</Badge>
+                              <span>{faq.question}</span>
+                            </div>
                           </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-muted-foreground">{faq.answer}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {faq.relatedPages.map((page) => (
-                            <Badge key={page} variant="secondary">{page}</Badge>
-                          ))}
-                        </div>
-                        <p className="mt-3 text-xs text-muted-foreground">Last updated {faq.lastUpdated}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p className="text-muted-foreground">{faq.answer}</p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {faq.relatedPages.map((page) => (
+                              <Badge key={page} variant="secondary">{page}</Badge>
+                            ))}
+                          </div>
+                          <p className="mt-3 text-xs text-muted-foreground">Last updated {faq.lastUpdated}</p>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                  {faqPageCount > 1 ? (
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Page {currentFaqPage} of {faqPageCount}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={currentFaqPage === 1}
+                          onClick={() => setFaqPage(currentFaqPage - 1)}
+                        >
+                          Previous
+                        </Button>
+                        {Array.from({ length: faqPageCount }, (_, index) => {
+                          const page = index + 1
+                          return (
+                            <Button
+                              key={page}
+                              type="button"
+                              size="sm"
+                              variant={page === currentFaqPage ? "default" : "outline"}
+                              className="min-w-9"
+                              onClick={() => setFaqPage(page)}
+                              aria-label={`Open FAQ page ${page}`}
+                              aria-current={page === currentFaqPage ? "page" : undefined}
+                            >
+                              {page}
+                            </Button>
+                          )
+                        })}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={currentFaqPage === faqPageCount}
+                          onClick={() => setFaqPage(currentFaqPage + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
               ) : (
                 <p className="p-6 text-center text-sm text-muted-foreground">No FAQ results match your search.</p>
               )}
             </Card>
           </section>
 
-          <section id="user-guide" className="space-y-4 scroll-mt-24">
+          <section id="user-guide" className="space-y-4 scroll-mt-24 xl:col-start-1 xl:row-start-2">
             <SectionHeader title="User Guide" description="Practical documentation for trainee workflows." />
             <div className="grid gap-4 md:grid-cols-2">
               {filteredGuides.map((guide) => (
@@ -597,52 +664,10 @@ export function HelpContent() {
             </DialogContent>
           </Dialog>
 
-          <section id="troubleshooting" className="space-y-4 scroll-mt-24">
-            <SectionHeader title="Troubleshooting Center" description="Diagnose common problems before submitting a ticket." />
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredTroubleshooting.map((item) => (
-                <Card key={item.problem} className="p-5">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="mt-1 h-5 w-5 text-primary" />
-                    <div>
-                      <h3 className="font-semibold">{item.problem}</h3>
-                      <p className="mt-3 text-sm font-medium">Possible causes</p>
-                      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                        {item.causes.map((cause) => (
-                          <li key={cause}>- {cause}</li>
-                        ))}
-                      </ul>
-                      <p className="mt-3 text-sm text-muted-foreground">{item.solution}</p>
-                      <Badge className="mt-4" variant="outline">{item.relatedDocumentation}</Badge>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          <section id="announcements" className="space-y-4 scroll-mt-24">
-            <SectionHeader title="Recent Announcements" description="Maintenance, updates, known issues, and feature releases." />
-            <Card className="p-5">
-              <div className="space-y-5">
-                {filteredAnnouncements.map((announcement) => (
-                  <div key={announcement.title} className="relative border-l border-border pl-5">
-                    <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">{announcement.category}</Badge>
-                      <time className="text-xs text-muted-foreground">{announcement.date}</time>
-                    </div>
-                    <h3 className="mt-2 font-semibold">{announcement.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{announcement.description}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </section>
         </div>
 
-        <aside className="space-y-8">
-          <section id="contact-support" className="space-y-4 scroll-mt-24">
+        <aside className="space-y-8 xl:contents">
+          <section id="contact-support" className="space-y-4 scroll-mt-24 xl:col-start-2 xl:row-start-1">
             <SectionHeader title="Contact Support" description="Reach the administrator for urgent help." />
             <Card className="space-y-4 p-5">
               {[
@@ -674,18 +699,18 @@ export function HelpContent() {
             </Card>
           </section>
 
-          <section id="system-status" className="space-y-4 scroll-mt-24">
+          <section id="system-status" className="space-y-4 scroll-mt-24 xl:col-start-2 xl:row-start-2">
             <SectionHeader title="System Status" description="Current operational status." />
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
               {statuses.map((status) => (
-                <Card key={status.name} className="flex items-center justify-between gap-3 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-primary/10 p-2 text-primary">
+                <Card key={status.name} className="flex min-w-0 flex-col items-start justify-between gap-3 p-3 sm:flex-row sm:items-center sm:p-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="shrink-0 rounded-md bg-primary/10 p-2 text-primary">
                       <status.icon className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{status.name}</p>
-                      <p className="text-xs text-muted-foreground">{status.value}</p>
+                    <div className="min-w-0">
+                      <p className="break-words text-sm font-medium">{status.name}</p>
+                      <p className="break-words text-xs text-muted-foreground">{status.value}</p>
                     </div>
                   </div>
                   <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400">
@@ -697,6 +722,75 @@ export function HelpContent() {
           </section>
         </aside>
       </div>
+
+      <section id="announcements" className="space-y-4 scroll-mt-24">
+        <SectionHeader title="Recent Announcements" description="Maintenance, updates, known issues, and feature releases." />
+        {filteredAnnouncements.length ? (
+          <Card className="p-5 md:p-6">
+            <div className="space-y-5">
+              {paginatedAnnouncements.map((announcement) => (
+                <div key={announcement.title} className="relative border-l border-border pl-5">
+                  <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary">{announcement.category}</Badge>
+                    <time className="text-xs text-muted-foreground">{announcement.date}</time>
+                  </div>
+                  <h3 className="mt-2 font-semibold">{announcement.title}</h3>
+                  <p className="mt-1 max-w-5xl text-sm leading-relaxed text-muted-foreground">{announcement.description}</p>
+                </div>
+              ))}
+            </div>
+            {announcementPageCount > 1 ? (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Page {currentAnnouncementPage} of {announcementPageCount}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={currentAnnouncementPage === 1}
+                    onClick={() => setAnnouncementPage(currentAnnouncementPage - 1)}
+                  >
+                    Previous
+                  </Button>
+                  {Array.from({ length: announcementPageCount }, (_, index) => {
+                    const page = index + 1
+                    return (
+                      <Button
+                        key={page}
+                        type="button"
+                        size="sm"
+                        variant={page === currentAnnouncementPage ? "default" : "outline"}
+                        className="min-w-9"
+                        onClick={() => setAnnouncementPage(page)}
+                        aria-label={`Open announcement page ${page}`}
+                        aria-current={page === currentAnnouncementPage ? "page" : undefined}
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={currentAnnouncementPage === announcementPageCount}
+                    onClick={() => setAnnouncementPage(currentAnnouncementPage + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </Card>
+        ) : (
+          <Card className="border-dashed p-8 text-center text-sm text-muted-foreground">
+            No announcements match your search.
+          </Card>
+        )}
+      </section>
 
       <section id="report-issue" className="space-y-4 scroll-mt-24">
         <SectionHeader title="Report Issue" description="Submit a detailed support report with validation and optional screenshot." />
